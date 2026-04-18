@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadtrip Benelux — Sechs Tage im Cabrio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Caveat:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f4ede1;
+    --cream-dark: #e8dcc4;
+    --ink: #2b2117;
+    --ink-soft: #4a3d2e;
+    --rust: #b54b2c;
+    --rust-dark: #8a3620;
+    --forest: #3d5a3a;
+    --ochre: #c8944a;
+    --paper: #faf6ed;
+    --shadow: rgba(43, 33, 23, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    font-weight: 400;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Paper texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(139, 69, 19, 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(139, 69, 19, 0.03) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.15 0 0 0 0 0.1 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 2rem;
+    position: relative;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .hero-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .dateline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dateline::before, .dateline::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ink-soft);
+    opacity: 0.4;
+    max-width: 100px;
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 2rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--rust);
+  }
+
+  .hero-kicker {
+    font-family: 'Caveat', cursive;
+    font-size: 1.8rem;
+    color: var(--rust);
+    margin-bottom: 1rem;
+    transform: rotate(-1deg);
+    display: inline-block;
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink);
+  }
+
+  .hero-meta-item {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .hero-meta-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.25rem;
+  }
+
+  .hero-meta-value {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  /* TOC */
+  .toc {
+    padding: 5rem 2rem;
+    background: var(--cream);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .toc-title {
+    font-family: 'Caveat', cursive;
+    font-size: 2rem;
+    color: var(--rust);
+    margin-bottom: 2rem;
+    transform: rotate(-0.5deg);
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .toc-item {
+    background: var(--paper);
+    padding: 1.5rem;
+    border: 1px solid var(--ink);
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.3s ease;
+    position: relative;
+    display: block;
+  }
+
+  .toc-item:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+
+  .toc-item-day {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: var(--rust);
+  }
+
+  .toc-item-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    margin: 0.25rem 0 0.5rem;
+    line-height: 1.2;
+  }
+
+  .toc-item-km {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* DAY SECTIONS */
+  .day {
+    padding: 6rem 2rem;
+    border-bottom: 1px solid rgba(43, 33, 23, 0.2);
+    position: relative;
+  }
+
+  .day:nth-child(even) {
+    background: var(--cream);
+  }
+
+  .day-header {
+    max-width: 1080px;
+    margin: 0 auto 4rem;
+    position: relative;
+  }
+
+  .day-number {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 300;
+    line-height: 0.8;
+    color: var(--rust);
+    font-style: italic;
+    opacity: 0.9;
+    letter-spacing: -0.05em;
+  }
+
+  .day-number-label {
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    color: var(--forest);
+    display: block;
+    margin-bottom: -0.5rem;
+    transform: rotate(-2deg);
+  }
+
+  .day-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-top: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .day-title em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .day-route {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  .day-route-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--rust);
+    border-radius: 50%;
+  }
+
+  .day-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .day-content h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 500;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .day-content h3::before {
+    content: '';
+    width: 30px;
+    height: 2px;
+    background: var(--rust);
+  }
+
+  .day-content p {
+    margin-bottom: 1.2rem;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+
+  .day-content p strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .day-content ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .day-content ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  .day-content ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--rust);
+    font-weight: 600;
+  }
+
+  /* CALLOUT / MARGIN NOTE */
+  .margin-note {
+    background: var(--paper);
+    border-left: 3px solid var(--ochre);
+    padding: 1.5rem;
+    margin: 2rem 0;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    position: relative;
+  }
+
+  .margin-note::before {
+    content: '❋';
+    position: absolute;
+    top: -0.5rem;
+    left: 1rem;
+    background: var(--paper);
+    padding: 0 0.5rem;
+    color: var(--ochre);
+    font-size: 1.2rem;
+  }
+
+  .margin-note strong {
+    color: var(--rust-dark);
+    font-style: normal;
+  }
+
+  /* POLAROID IMAGES */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+    margin: 2.5rem 0;
+  }
+
+  .polaroid {
+    background: white;
+    padding: 0.75rem 0.75rem 2.5rem;
+    box-shadow: 0 4px 12px var(--shadow), 0 2px 4px rgba(0,0,0,0.08);
+    position: relative;
+    transition: transform 0.4s ease;
+  }
+
+  .polaroid:nth-child(odd) { transform: rotate(-1.5deg); }
+  .polaroid:nth-child(even) { transform: rotate(1deg); }
+  .polaroid:nth-child(3n) { transform: rotate(-0.5deg); }
+
+  .polaroid:hover {
+    transform: rotate(0) scale(1.03);
+    z-index: 10;
+  }
+
+  .polaroid-image {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--cream-dark);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .polaroid-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.9) contrast(1.05);
+  }
+
+  .polaroid-caption {
+    font-family: 'Caveat', cursive;
+    font-size: 1.15rem;
+    color: var(--ink);
+    text-align: center;
+    padding-top: 0.75rem;
+  }
+
+  /* HOTEL TABLE */
+  .hotels {
+    margin: 2.5rem 0;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    overflow: hidden;
+  }
+
+  .hotels-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem 1.5rem;
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  .hotel-row {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(43, 33, 23, 0.15);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .hotel-row:last-child { border-bottom: none; }
+
+  .hotel-name {
+    font-family: 'Fraunces', serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+
+  .hotel-desc {
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .hotel-price {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    color: var(--rust);
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  /* MARKETS */
+  .markets {
+    background: var(--forest);
+    color: var(--paper);
+    padding: 5rem 2rem;
+    position: relative;
+  }
+
+  .markets::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(244, 237, 225, 0.02) 40px,
+        rgba(244, 237, 225, 0.02) 80px
+      );
+    pointer-events: none;
+  }
+
+  .markets-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .markets h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .markets-sub {
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    color: var(--ochre);
+    margin-bottom: 3rem;
+  }
+
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .market-card {
+    border: 1px solid rgba(244, 237, 225, 0.3);
+    padding: 1.5rem;
+    background: rgba(244, 237, 225, 0.03);
+  }
+
+  .market-day {
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem;
+    color: var(--ochre);
+    margin-bottom: 0.25rem;
+  }
+
+  .market-name {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .market-desc {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* MAP SECTION */
+  .map-section {
+    padding: 5rem 2rem;
+    background: var(--paper);
+  }
+
+  .map-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .map-section h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 300;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .map-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .map-link {
+    background: var(--cream);
+    border: 1px solid var(--ink);
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.3s ease;
+    display: block;
+  }
+
+  .map-link:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0 var(--rust);
+  }
+
+  .map-link-label {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: var(--rust);
+    margin-bottom: 0.25rem;
+  }
+
+  .map-link-url {
+    font-family: 'Inter', monospace;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    word-break: break-all;
+  }
+
+  .waypoints {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2rem;
+    margin-top: 2rem;
+    font-family: 'Inter', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .waypoints strong {
+    color: var(--ochre);
+    font-family: 'Caveat', cursive;
+    font-size: 1.15rem;
+    display: block;
+    margin-top: 0.5rem;
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 4rem 2rem 3rem;
+    background: var(--ink);
+    color: var(--cream);
+    text-align: center;
+  }
+
+  .footer-inner {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .footer h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .footer p {
+    opacity: 0.8;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-signature {
+    font-family: 'Caveat', cursive;
+    font-size: 1.8rem;
+    color: var(--ochre);
+    margin-top: 2rem;
+    transform: rotate(-2deg);
+    display: inline-block;
+  }
+
+  .footer-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--ochre);
+    margin: 2rem auto;
+    opacity: 0.5;
+  }
+
+  /* ORNAMENT */
+  .ornament {
+    text-align: center;
+    margin: 3rem 0;
+    color: var(--rust);
+    font-size: 1.5rem;
+    letter-spacing: 1rem;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: white; }
+    .day { page-break-inside: avoid; page-break-after: always; }
+    .grain { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 3rem 1.5rem; }
+    .container, .day, .markets, .map-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hotel-row { grid-template-columns: 1fr; }
+    .hotel-price { margin-top: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="dateline">Frühjahr 2026 · Ein Cabrio-Journal</div>
+    <span class="hero-kicker">für Ima & Imo ~</span>
+    <h1>Sechs Tage<br>durch <em>Belgien</em><br>& Zuid-Limburg</h1>
+    <p style="font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--ink-soft); max-width: 600px; line-height: 1.5; margin-top: 1.5rem; font-style: italic;">
+      Kleine Landstraßen statt Autobahn. Wochenmärkte statt Touristenbusse. Hotels mit Charakter statt Ketten. Eine Route, die das Auto und die Fahrer gleichermaßen glücklich macht.
+    </p>
+
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="hero-meta-label">Start / Ziel</div>
+        <div class="hero-meta-value">Aachen</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-label">Dauer</div>
+        <div class="hero-meta-value">6 Tage / 5 Nächte</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-label">Gesamt</div>
+        <div class="hero-meta-value">~550 km</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-label">Ø pro Tag</div>
+        <div class="hero-meta-value">90 km</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOC -->
+<section class="toc">
+  <div class="container">
+    <div class="toc-title">Die Etappen ~</div>
+    <div class="toc-grid">
+      <a href="#tag1" class="toc-item">
+        <div class="toc-item-day">Tag 1</div>
+        <div class="toc-item-title">Aachen → Tongeren</div>
+        <div class="toc-item-km">75 km · Voerstreek</div>
+      </a>
+      <a href="#tag2" class="toc-item">
+        <div class="toc-item-day">Tag 2</div>
+        <div class="toc-item-title">Tongeren → Leuven</div>
+        <div class="toc-item-km">95 km · Haspengouw</div>
+      </a>
+      <a href="#tag3" class="toc-item">
+        <div class="toc-item-day">Tag 3</div>
+        <div class="toc-item-title">Leuven Rundtour</div>
+        <div class="toc-item-km">100 km · Hasselt</div>
+      </a>
+      <a href="#tag4" class="toc-item">
+        <div class="toc-item-day">Tag 4</div>
+        <div class="toc-item-title">Leuven → Namur</div>
+        <div class="toc-item-km">95 km · Villers-la-Ville</div>
+      </a>
+      <a href="#tag5" class="toc-item">
+        <div class="toc-item-day">Tag 5</div>
+        <div class="toc-item-title">Namur → Durbuy</div>
+        <div class="toc-item-km">85 km · Maastal</div>
+      </a>
+      <a href="#tag6" class="toc-item">
+        <div class="toc-item-day">Tag 6</div>
+        <div class="toc-item-title">Durbuy → Aachen</div>
+        <div class="toc-item-km">110 km · Hohes Venn</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 1 -->
+<section class="day" id="tag1">
+  <div class="day-header">
+    <span class="day-number-label">~ erster tag ~</span>
+    <div class="day-number">01</div>
+    <h2 class="day-title">Durch die <em>Voerstreek</em> nach Tongeren</h2>
+    <div class="day-route">
+      <span>Aachen</span><span class="day-route-dot"></span>
+      <span>Vaals</span><span class="day-route-dot"></span>
+      <span>Teuven</span><span class="day-route-dot"></span>
+      <span>Kanne</span><span class="day-route-dot"></span>
+      <span>Tongeren · 75 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <p>Ein weicher Start. Das Verdeck runter, die ersten Kilometer über Vaals zum <strong>Drielandenpunt</strong> auf dem Vaalserberg — mit 322 Metern die höchste Erhebung der Niederlande, und der einzige Ort Europas, an dem sich drei Ländergrenzen küssen. Ein kurzer Foto-Stopp, ein Kaffee im Café auf dem Aussichtsturm, dann weiter.</p>
+
+    <p>Ab jetzt: die <strong>Voerstreek</strong>. Belgiens bestgehütetes Geheimnis. Sanfte Hügel, Hohlwegen, Fachwerkhäuser, Obstwiesen. Kaum Autos, kaum Touristen. Über Sippenaken und Gemmenich geht es nach 's-Gravenvoeren, Teuven und Remersdaal — jedes Dorf ein Aquarell. Die Route folgt den <em>N608</em> und kleineren Gemeindestraßen. Das Navi wird mehrfach Umleitungen vorschlagen; ignoriert es.</p>
+
+    <div class="margin-note">
+      <strong>Mittagstipp:</strong> Bei <em>De Zevende Heerlijkheid</em> in Slenaken einkehren. Terrasse mit Panoramablick übers Gulptal, regionale Karte, keine Eile. Alternative: <em>Restaurant Gerardushoeve</em> in Epen — rustikal, ehrlich, Limburger Kirschtorte zum Abschluss.
+    </div>
+
+    <p>Weiter über <strong>Kanne</strong>, das Grenzdorf an der Maas mit seinen unterirdischen Mergelgängen. Von hier nur noch zwanzig Minuten nach Tongeren — Belgiens älteste Stadt, römische Gründung, heute ein versteckter Schatz mit Grote Markt, Basilika, mittelalterlicher Stadtmauer und entspannten Gastronomie-Terrassen.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=800&q=80" alt="Hügellandschaft Voerstreek" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Voerstreek ~ endlos Hügel</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1551801841-ecad875d1484?w=800&q=80" alt="Tongeren Altstadt" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Tongeren, Grote Markt</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1523730205978-59fd1b2965e3?w=800&q=80" alt="Dreiländerpunkt" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Dreiländerpunkt Vaals</div>
+      </div>
+    </div>
+
+    <h3>Hotels in Tongeren</h3>
+    <div class="hotels">
+      <div class="hotels-header">Drei Empfehlungen mit Charakter</div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Eburon Hotel</div>
+          <div class="hotel-desc">Ehemaliges Kloster direkt an der mittelalterlichen Stadtmauer. Perfekt, wenn ihr Sonntagmorgen direkt in den Antikmarkt starten wollt.</div>
+        </div>
+        <div class="hotel-price">€130–160</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Hotel Ambiotel</div>
+          <div class="hotel-desc">Familiengeführt, ruhig, klein. Zentrumsnah ohne im Lärm zu liegen. Guter Frühstücksraum.</div>
+        </div>
+        <div class="hotel-price">€110</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">B&B Huize Briers <span style="color: var(--ink-soft); font-weight: 400; font-size: 0.9rem;">(in Hoeselt, 10 min)</span></div>
+          <div class="hotel-desc">Kuriosum: historischer Friseurladen unten, charmante B&B oben. Vespas zum Leihen. Eine Nacht, die man nicht vergisst.</div>
+        </div>
+        <div class="hotel-price">€120</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 2 -->
+<section class="day" id="tag2">
+  <div class="day-header">
+    <span class="day-number-label">~ zweiter tag ~</span>
+    <div class="day-number">02</div>
+    <h2 class="day-title">Das <em>Blütenmeer</em> von Haspengouw</h2>
+    <div class="day-route">
+      <span>Tongeren</span><span class="day-route-dot"></span>
+      <span>Alden Biesen</span><span class="day-route-dot"></span>
+      <span>Borgloon</span><span class="day-route-dot"></span>
+      <span>Sint-Truiden</span><span class="day-route-dot"></span>
+      <span>Diest</span><span class="day-route-dot"></span>
+      <span>Leuven · 95 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <div class="margin-note">
+      <strong>Ist es Sonntag?</strong> Dann VOR der Abfahrt den <em>Tongeren Antiekmarkt</em> besuchen — 7 bis 13 Uhr, 350 Stände entlang der Stadtmauer, größter Antikmarkt der Benelux. Dein Vater wird seine Freude haben.
+    </div>
+
+    <p>Haspengouw ist Belgiens Obstgarten. Im April und frühen Mai verwandelt sich die Region in ein weiß-rosa Blütenmeer, das Fotografen aus ganz Europa anzieht. Aber auch außerhalb der Blüte: sanfte Hügel, Weingüter, alte Abteien, der größte Obstanbau Westeuropas.</p>
+
+    <p>Erster Stopp: <strong>Alden Biesen</strong>, die größte Kommende des Deutschen Ritterordens, heute Tagungsort mit frei zugänglichem Park. Dann weiter nach <strong>Borgloon</strong> mit der weltberühmten <em>Doorkijkkerk</em> "Reading Between the Lines" — 30 Tonnen Stahl, 2000 Säulen, eine durchsichtige Kapelle zwischen Obstbäumen. Aus bestimmten Winkeln fest, aus anderen verschwindet sie.</p>
+
+    <div class="margin-note">
+      <strong>Achtung:</strong> Die Doorkijkkerk ist nur zu Fuß erreichbar. Parkplatz auf der Sint-Truidersteenweg. Wer auf die Feldwege fährt, riskiert 174 € Bußgeld — die Polizei patrouilliert aktiv.
+    </div>
+
+    <p><strong>Sint-Truiden</strong> als Mittagspause: UNESCO-gelisteter Belfried, 250 Denkmäler, einer der schönsten Marktplätze Flanderns. Die lokale Brauerei <em>Kerkom</em> produziert zur Blütezeit das "Blossom Blink"-Bier mit Honig und Birnensirup. Anschließend über Zoutleeuw und <strong>Diest</strong> (UNESCO-Beginenhof) nach Leuven.</p>
+
+    <p><strong>Leuven</strong>: Universitätsstadt seit 1425, mit dem wohl schönsten gotischen Rathaus der Welt (235 Statuen!), Oude Markt ("längste Theke Europas"), entspanntes Tempo. Eine Stadt zum Abendspaziergang.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1523246191919-bc9f17dc3a48?w=800&q=80" alt="Obstblüte" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Haspengouw im April</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1520637836862-4d197d17c55a?w=800&q=80" alt="Obstbaumallee" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Alden Biesen</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1558985212-24ee6e0e0711?w=800&q=80" alt="Leuven Rathaus" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Leuven, Stadhuis</div>
+      </div>
+    </div>
+
+    <h3>Hotels in Leuven</h3>
+    <div class="hotels">
+      <div class="hotels-header">Zwei Nächte · mit Stil</div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Martin's Klooster</div>
+          <div class="hotel-desc">Ehemaliges Kloster aus dem 16. Jahrhundert. Freigelegte Balken, altes Mauerwerk, fünf Minuten zur Grote Markt. Der offensichtliche Favorit.</div>
+        </div>
+        <div class="hotel-price">€170–220</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">The Fourth — Tafelrond</div>
+          <div class="hotel-desc">Am Rathaus. Gebäude von 1479 — erst Zunfthaus, dann Theater, Bank, heute Hotel. Italienische Möbel, Marmorbäder, durchdachter Luxus.</div>
+        </div>
+        <div class="hotel-price">€200–260</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Boutique Hotel Loven</div>
+          <div class="hotel-desc">Winzig — nur drei Zimmer. UNESCO-Gebäude. Intim, persönlich, ohne Empfang. Etwas für Entdecker.</div>
+        </div>
+        <div class="hotel-price">€130–160</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 3 -->
+<section class="day" id="tag3">
+  <div class="day-header">
+    <span class="day-number-label">~ dritter tag ~</span>
+    <div class="day-number">03</div>
+    <h2 class="day-title">Ein <em>Genusstag</em> im Hageland</h2>
+    <div class="day-route">
+      <span>Leuven</span><span class="day-route-dot"></span>
+      <span>Aarschot</span><span class="day-route-dot"></span>
+      <span>Scherpenheuvel</span><span class="day-route-dot"></span>
+      <span>Diest</span><span class="day-route-dot"></span>
+      <span>Hasselt</span><span class="day-route-dot"></span>
+      <span>Leuven · 100 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <p>Kein Hoteltransfer heute — das Gepäck bleibt in Leuven. Ein langsamer Tag, Genusstag. Die Route führt durch das Hageland, Belgiens wenig bekannte Weinregion, zur barocken Wallfahrtsbasilika <strong>Scherpenheuvel</strong> (siebenstrahliger Sternplan, beeindruckend) und weiter ins mittelalterliche <strong>Diest</strong> mit seinem UNESCO-Beginenhof.</p>
+
+    <p>Mittagsziel: <strong>Hasselt</strong>, "Hauptstadt des Geschmacks" und Heimat des Genevers, des belgischen Wacholderschnapses. Das Jenever-Museum ist charmant und klein — genau richtig für zwei Stunden. Der Japanische Garten (größter Europas) bietet Ruhe. Mittagstipp: <em>De Egel</em> oder <em>'t Hemelryck</em>, beide mit regionaler Karte.</p>
+
+    <div class="margin-note">
+      <strong>Alternative für diesen Tag:</strong> Wenn ihr Freilichtmuseen mögt, bietet sich <em>Bokrijk</em> an — ein riesiges Open-Air-Museum mit historischen Dörfern und Höfen. Viele Bänke, gemächliches Tempo, gut zu Fuß.
+    </div>
+
+    <p>Die Rückfahrt über Herk-de-Stad und Aarschot — kleine Straßen, wenig Verkehr. In Leuven bleibt abends Zeit für einen Aperitif auf der Oude Markt oder ein Konzert im Stadhuis-Viertel. Die Stadt lebt abends auf.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1527956041665-d7a1b380c460?w=800&q=80" alt="Hasselt" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Hasselt bei Sonnenuntergang</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1509600110300-21b9d5fedeb7?w=800&q=80" alt="Scherpenheuvel Basilika" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Scherpenheuvel</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1574948495680-f67d07248c43?w=800&q=80" alt="Jenever Verkostung" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Jenever-Verkostung</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 4 -->
+<section class="day" id="tag4">
+  <div class="day-header">
+    <span class="day-number-label">~ vierter tag ~</span>
+    <div class="day-number">04</div>
+    <h2 class="day-title">Ruinen in <em>Villers-la-Ville</em> · Nacht in Namur</h2>
+    <div class="day-route">
+      <span>Leuven</span><span class="day-route-dot"></span>
+      <span>Nivelles</span><span class="day-route-dot"></span>
+      <span>Villers-la-Ville</span><span class="day-route-dot"></span>
+      <span>Gembloux</span><span class="day-route-dot"></span>
+      <span>Namur · 95 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <p>Heute wechselt die Landschaft den Akzent — vom flämischen Brabant ins wallonische Hesbaye. Die ersten vierzig Kilometer über <strong>Nivelles</strong> mit seiner romanischen Stiftskirche, dann weiter zum heimlichen Höhepunkt des Tages:</p>
+
+    <p><strong>Villers-la-Ville</strong>. Die Ruinen einer Zisterzienserabtei aus dem 12. Jahrhundert, verwildert, von Efeu umrankt, mit Bögen, die in den Himmel zeigen. Ein Picknickplatz wie gemalt. Wenig Touristen, viel Atmosphäre. Plant anderthalb bis zwei Stunden.</p>
+
+    <div class="margin-note">
+      <strong>Tipp:</strong> Die Strecke zwischen Villers-la-Ville und Gembloux führt über die <em>N29</em> und <em>N931</em> durchs Hesbaye-Plateau — sanfte Weizenfelder, einsame Höfe, perfekte Cabrio-Kurven. Kein GPS-Umweg, sondern eine der schönsten Nebenstraßen Walloniens.
+    </div>
+
+    <p><strong>Namur</strong> liegt am Zusammenfluss von Maas und Sambre. Die Zitadelle darüber ist eine der größten Festungen Europas — mit dem Auto bis oben fahrbar, kostenloses Parken, spektakulärer Blick über die Stadt. Die Altstadt darunter: Gässchen, Antiquitätenläden, Maas-Terrassen. Abends lohnt das Félicien-Rops-Museum (belgischer Symbolist, gewagt für seine Zeit) oder einfach ein Aperol an der Quais de Meuse.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1528736235302-52922df5c122?w=800&q=80" alt="Villers-la-Ville Ruinen" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Villers-la-Ville</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1567956081571-c8b55a9b8c94?w=800&q=80" alt="Namur Zitadelle" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Namur, Zitadelle</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1491466424936-e304919aada7?w=800&q=80" alt="Maas Fluss" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Die Maas</div>
+      </div>
+    </div>
+
+    <h3>Hotels in Namur</h3>
+    <div class="hotels">
+      <div class="hotels-header">Wo die Maas fließt</div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Les Tanneurs de Namur</div>
+          <div class="hotel-desc">Ehemalige Gerberei. Labyrinthische Treppen, altes Mauerwerk, überraschende Zimmer-Layouts. Im Herzen der Altstadt.</div>
+        </div>
+        <div class="hotel-price">€120–180</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">The Royal Snail</div>
+          <div class="hotel-desc">Boutique-Design mit Vertical Garden, Outdoor-Pool, kleinem Spa. Nicht Altstadt, aber nur 10 Min. zu Fuß. Stylish.</div>
+        </div>
+        <div class="hotel-price">€160–220</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Le Château de Namur</div>
+          <div class="hotel-desc">Oben auf der Zitadelle, historisches Schloss. Rosengärten, Panorama, betrieben von der Hotelfachschule — Service lernt dazu, Ambiente unschlagbar.</div>
+        </div>
+        <div class="hotel-price">€130–200</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 5 -->
+<section class="day" id="tag5">
+  <div class="day-header">
+    <span class="day-number-label">~ fünfter tag ~</span>
+    <div class="day-number">05</div>
+    <h2 class="day-title">Die <em>Maas entlang</em> nach Durbuy</h2>
+    <div class="day-route">
+      <span>Namur</span><span class="day-route-dot"></span>
+      <span>Profondeville</span><span class="day-route-dot"></span>
+      <span>Dinant</span><span class="day-route-dot"></span>
+      <span>Crupet</span><span class="day-route-dot"></span>
+      <span>Celles</span><span class="day-route-dot"></span>
+      <span>Durbuy · 85 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <p>Heute gilt eine einzige Regel: <strong>nicht auf die Autobahn</strong>. Die <em>N92</em> und <em>N97</em> folgen der Maas, und sie tun es spektakulär. Felsenschluchten, Wasserschleifen, kleine Fährstellen, Segelboote. Bei <strong>Profondeville</strong> lohnt ein Stopp an einem der Maas-Cafés.</p>
+
+    <p><strong>Dinant</strong> ist der Klassiker — die Kollegiatkirche unter der senkrechten Felswand, die Zitadelle darüber per Seilbahn erreichbar, das Saxophon-Museum (Adolphe Sax ist hier geboren). Touristisch, aber zurecht. Wer es ruhiger mag: einen Kaffee am Ufer, die Stadt überqueren, weiter.</p>
+
+    <div class="margin-note">
+      <strong>Kuriosum:</strong> <em>L'Autrucherie du Pont d'Amour</em> bei Dinant — eine Straußenfarm (auch Emus, Nandus, Kasuare). Verkauft Straußenfleisch, Eier, Federn. Selbst ohne Kauf ein absurd schöner Stopp: riesige Vögel vor der Ardennenkulisse.
+    </div>
+
+    <p>Danach der Umweg, der sich lohnt: <strong>Crupet</strong> und <strong>Celles</strong>, beide auf der Liste "Les Plus Beaux Villages de Wallonie". Steinhäuser, Kopfsteinpflaster, eine Handvoll Einwohner, zwölfhundert Jahre Geschichte. In Celles das <em>Château de Vêves</em> — ein Märchenschloss, das man auch besichtigen kann, aber schon der Blick von außen reicht.</p>
+
+    <p>Später Nachmittag in <strong>Durbuy</strong>, der selbsternannten "kleinsten Stadt der Welt" (mit 500 Einwohnern im historischen Kern nicht mal ganz gelogen). Mittelalterliche Gassen, ein Topiary-Park mit 250 Buchsbaumskulpturen, das Schloss des Grafen am Ourthe-Ufer. Am späten Nachmittag, wenn die Tagesbesucher weg sind, ist die Stadt am schönsten.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1505839673365-e3971f8d9184?w=800&q=80" alt="Dinant Felsen" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Dinant, Felsenstadt</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1533219057257-4bb9ed5d2cc7?w=800&q=80" alt="Durbuy" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Durbuy, kleinste Stadt der Welt</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1520962922320-2038eebab146?w=800&q=80" alt="Dorf in den Ardennen" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Crupet & Celles</div>
+      </div>
+    </div>
+
+    <h3>Hotels in Durbuy</h3>
+    <div class="hotels">
+      <div class="hotels-header">In oder um die kleinste Stadt</div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Le Sanglier des Ardennes <span style="color: var(--ink-soft); font-weight: 400; font-size: 0.9rem;">(im Zentrum)</span></div>
+          <div class="hotel-desc">Michelin-Guide-gelistet. Historisches Gebäude, komplett renoviert, Spa, mehrere Restaurants, Luxus mit Seele. Der teure Favorit.</div>
+        </div>
+        <div class="hotel-price">€220–350</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Hotel La Passerelle <span style="color: var(--ink-soft); font-weight: 400; font-size: 0.9rem;">(Petithan, 6 km)</span></div>
+          <div class="hotel-desc">Familiengeführt, ehemaliger Bauernhof, Terrasse direkt an der Ourthe, französische Küche. Ehrlich, warm, unaufgeregt.</div>
+        </div>
+        <div class="hotel-price">€120–160</div>
+      </div>
+      <div class="hotel-row">
+        <div>
+          <div class="hotel-name">Durbuy-Ô <span style="color: var(--ink-soft); font-weight: 400; font-size: 0.9rem;">(Warre, 8 km)</span></div>
+          <div class="hotel-desc">Nur sechs Zimmer. Bib-Gourmand-Restaurant. Ruhe, Landhaus-Ambiente, der Gastronomie-Favorit unter den kleinen Häusern.</div>
+        </div>
+        <div class="hotel-price">€140–180</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAG 6 -->
+<section class="day" id="tag6">
+  <div class="day-header">
+    <span class="day-number-label">~ letzter tag ~</span>
+    <div class="day-number">06</div>
+    <h2 class="day-title">Durchs <em>Hohe Venn</em> heim</h2>
+    <div class="day-route">
+      <span>Durbuy</span><span class="day-route-dot"></span>
+      <span>La Roche</span><span class="day-route-dot"></span>
+      <span>Stavelot</span><span class="day-route-dot"></span>
+      <span>Spa</span><span class="day-route-dot"></span>
+      <span>Baraque Michel</span><span class="day-route-dot"></span>
+      <span>Aachen · 110 km</span>
+    </div>
+  </div>
+
+  <div class="day-content">
+    <p>Der letzte Tag ist der Kurventag. Wenn ein Tag den Fahrspaß des Cabrios rechtfertigt, dann dieser. Von Durbuy nach <strong>La Roche-en-Ardenne</strong> — das Städtchen liegt in einer perfekten Ourthe-Schleife, überragt von einer mittelalterlichen Burgruine. Ein Foto-Stopp, vielleicht ein Kaffee am Ufer.</p>
+
+    <p>Weiter nach <strong>Stavelot</strong>, eines dieser Städtchen, die keiner auf dem Schirm hat und die genau deshalb so schön sind. Barocke Fassaden, eine ehemalige Fürstabtei mit drei (!) Museen darin, darunter das Karnevalsmuseum mit den berühmten "Blancs Moussis"-Masken. Ein halber Tag ließe sich hier verbringen.</p>
+
+    <p><strong>Spa</strong> — ja, <em>die</em> namensgebende Stadt. Das älteste Heilbad Europas. Der Pouhon Pierre-le-Grand-Brunnen sprudelt seit dem 16. Jahrhundert. Ein kurzer Besuch im alten Kurhaus, ein Glas Mineralwasser direkt an der Quelle.</p>
+
+    <div class="margin-note">
+      <strong>Der Höhepunkt:</strong> Die <em>N68</em> von Spa durchs <strong>Hohe Venn</strong> (Hautes Fagnes). Moorlandschaft, Heide, Holzstege, weite Horizonte. Eine der schönsten Cabrio-Strecken Belgiens, vor allem im Frühjahr und Herbst. Kaffee-Stopp bei <em>Baraque Michel</em> auf 674 Meter Höhe — typisches Ardennen-Gasthaus.
+    </div>
+
+    <p>Von dort über Eupen zurück nach Aachen. Sechs Tage, 550 Kilometer, ein Cabrio voller Erinnerungen.</p>
+
+    <div class="photo-grid">
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1565183997397-29c6d3e2cdfa?w=800&q=80" alt="La Roche Burg" loading="lazy">
+        </div>
+        <div class="polaroid-caption">La Roche-en-Ardenne</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?w=800&q=80" alt="Hohes Venn Moor" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Hohes Venn im Morgenlicht</div>
+      </div>
+      <div class="polaroid">
+        <div class="polaroid-image">
+          <img src="https://images.unsplash.com/photo-1473181488821-2d23949a045a?w=800&q=80" alt="Cabrio auf Landstraße" loading="lazy">
+        </div>
+        <div class="polaroid-caption">Heimweg ~</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- MARKETS -->
+<section class="markets">
+  <div class="markets-inner">
+    <div class="markets-sub">~ Wochen- und Antikmärkte ~</div>
+    <h2>Der <em>Kalender</em> der Region</h2>
+    <p style="opacity: 0.85; max-width: 600px; margin: 1rem 0 3rem; font-size: 1.05rem; line-height: 1.7;">
+      Gute Märkte findet man nicht über Google. Diese hier sind die, die Einheimische anlaufen — kein Nippes für Touristen, sondern echtes Leben.
+    </p>
+
+    <div class="market-grid">
+      <div class="market-card">
+        <div class="market-day">Sonntag</div>
+        <div class="market-name">Tongeren Antiekmarkt</div>
+        <div class="market-desc">7–13 Uhr. 350 Stände entlang der Stadtmauer. Größter Antikmarkt der Benelux. Frühe Vögel finden die besten Stücke. 25 Min. von Maastricht.</div>
+      </div>
+      <div class="market-card">
+        <div class="market-day">Freitag</div>
+        <div class="market-name">Maastricht Markt</div>
+        <div class="market-desc">8–16 Uhr am Marktplatz. Frische Produkte, Käse, Blumen, niederländische Normalität in bester Form.</div>
+      </div>
+      <div class="market-card">
+        <div class="market-day">Samstag</div>
+        <div class="market-name">Leuven Grote Markt</div>
+        <div class="market-desc">Bio-Produkte und Regionales direkt vor dem gotischen Rathaus. Kleinere Auswahl, dafür hohe Qualität.</div>
+      </div>
+      <div class="market-card">
+        <div class="market-day">Samstag</div>
+        <div class="market-name">Hasselt Kolonel Dusartplein</div>
+        <div class="market-desc">Vormittags. Lokale Bauern, Bäckereien, kleine Brauereien. Gute Gelegenheit, Jenever für zu Hause mitzunehmen.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="map-section">
+  <div class="map-inner">
+    <div class="markets-sub" style="color: var(--rust);">~ Navigation ~</div>
+    <h2>Die Route in <em>Google Maps</em></h2>
+    <p style="color: var(--ink-soft); max-width: 600px; margin: 1rem 0 2rem; font-size: 1.05rem; line-height: 1.7;">
+      Zwei Varianten — einfacher Direktlink oder "Meine Karte" mit Ebenen pro Tag. Die zweite Variante synchronisiert auf alle Geräte und funktioniert auch offline.
+    </p>
+
+    <div class="map-links">
+      <a href="https://www.google.com/maps/dir/Aachen/Vaals/Tongeren,+Belgium/Borgloon/Leuven,+Belgium/Villers-la-Ville/Namur,+Belgium/Dinant/Durbuy/Stavelot/Spa,+Belgium/Aachen" target="_blank" class="map-link">
+        <div class="map-link-label">Direktlink (einfach)</div>
+        <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; margin: 0.5rem 0;">In Google Maps öffnen</div>
+        <div class="map-link-url">Klick → Maps öffnet sich mit allen Wegpunkten</div>
+      </a>
+      <a href="https://www.google.com/maps/d/" target="_blank" class="map-link">
+        <div class="map-link-label">Meine Karte (empfohlen)</div>
+        <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; margin: 0.5rem 0;">Eigene Karte erstellen</div>
+        <div class="map-link-url">Wegpunkte unten kopieren → als Ebenen importieren</div>
+      </a>
+    </div>
+
+    <div class="waypoints">
+<strong>Tag 1 · Aachen → Tongeren</strong>
+Aachen · Vaalserberg · Teuven · Kanne · Tongeren
+
+<strong>Tag 2 · Tongeren → Leuven</strong>
+Alden Biesen · Borgloon · Sint-Truiden · Diest · Leuven
+
+<strong>Tag 3 · Leuven Rundtour</strong>
+Aarschot · Scherpenheuvel · Hasselt · Herk-de-Stad · Leuven
+
+<strong>Tag 4 · Leuven → Namur</strong>
+Nivelles · Villers-la-Ville · Gembloux · Namur
+
+<strong>Tag 5 · Namur → Durbuy</strong>
+Profondeville · Dinant · Crupet · Celles · Durbuy
+
+<strong>Tag 6 · Durbuy → Aachen</strong>
+La Roche-en-Ardenne · Stavelot · Spa · Baraque Michel · Eupen · Aachen
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <h3>Gute Reise ~</h3>
+    <div class="footer-divider"></div>
+    <p>Öffnungszeiten, Preise und Verfügbarkeiten unbedingt vor Buchung prüfen.</p>
+    <p>Das Cabrio-Verdeck bei kurzen Gewittern lieber oben lassen — die Ardennen wechseln schnell das Wetter.</p>
+    <p style="margin-top: 1.5rem; font-size: 0.85rem; opacity: 0.5;">Zusammengestellt aus Blog-Recherchen von Along Came An Elephant, Voyage de Miel, Hotel Guru, Visit Limburg, Lonely Planet und Worldwanderista — ohne Trip-Advisor Top-10-Touristenfallen.</p>
+    <div class="footer-signature">mit liebe zusammengestellt</div>
+  </div>
+</footer>
+
+</body>
+</html>
