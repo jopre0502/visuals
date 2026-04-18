@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Caveat:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 <style>
   :root {
     --cream: #f4ede1;
@@ -1211,43 +1213,46 @@
 <!-- MAP -->
 <section class="map-section">
   <div class="map-inner">
-    <div class="markets-sub" style="color: var(--rust);">~ Navigation ~</div>
-    <h2>Die Route in <em>Google Maps</em></h2>
-    <p style="color: var(--ink-soft); max-width: 600px; margin: 1rem 0 2rem; font-size: 1.05rem; line-height: 1.7;">
-      Zwei Varianten — einfacher Direktlink oder "Meine Karte" mit Ebenen pro Tag. Die zweite Variante synchronisiert auf alle Geräte und funktioniert auch offline.
+    <div class="markets-sub" style="color: var(--rust);">~ Die Route ~</div>
+    <h2>Sechs Tage <em>auf einen Blick</em></h2>
+    <p style="color: var(--ink-soft); max-width: 620px; margin: 1rem 0 2rem; font-size: 1.05rem; line-height: 1.7;">
+      Jede Etappe in eigener Farbe. Klick auf einen Pin öffnet die Tagesinfo mit einem <strong>Direktlink zu Google Maps</strong> für die Navigation unterwegs.
     </p>
 
-    <div class="map-links">
-      <a href="https://www.google.com/maps/dir/Aachen/Vaals/Tongeren,+Belgium/Borgloon/Leuven,+Belgium/Villers-la-Ville/Namur,+Belgium/Dinant/Durbuy/Stavelot/Spa,+Belgium/Aachen" target="_blank" class="map-link">
-        <div class="map-link-label">Direktlink (einfach)</div>
-        <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; margin: 0.5rem 0;">In Google Maps öffnen</div>
-        <div class="map-link-url">Klick → Maps öffnet sich mit allen Wegpunkten</div>
+    <div id="route-map" style="height: 580px; border: 1px solid var(--ink); background: var(--cream-dark); position: relative; z-index: 0;"></div>
+
+    <p style="font-size: 0.72rem; opacity: 0.55; margin-top: 0.6rem; font-style: italic;">Kartendaten &copy; OpenStreetMap-Mitwirkende, gerendert mit Leaflet. Koordinaten der Wegpunkte approximativ.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 2rem;">
+      <a href="https://www.google.com/maps/dir/Aachen/Drielandenpunt/Teuven/Kanne/Tongeren" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #b54b2c;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 1</strong> · Aachen → Tongeren<br><span style="font-size: 0.78rem; color: var(--ink-soft);">75 km · Voerstreek</span></span>
       </a>
-      <a href="https://www.google.com/maps/d/" target="_blank" class="map-link">
-        <div class="map-link-label">Meine Karte (empfohlen)</div>
-        <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; margin: 0.5rem 0;">Eigene Karte erstellen</div>
-        <div class="map-link-url">Wegpunkte unten kopieren → als Ebenen importieren</div>
+      <a href="https://www.google.com/maps/dir/Tongeren/Alden+Biesen/Borgloon/Sint-Truiden/Diest/Leuven" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #3d5a3a;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 2</strong> · Tongeren → Leuven<br><span style="font-size: 0.78rem; color: var(--ink-soft);">95 km · Haspengouw</span></span>
+      </a>
+      <a href="https://www.google.com/maps/dir/Leuven/Aarschot/Scherpenheuvel/Hasselt/Herk-de-Stad/Leuven" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #c8944a;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 3</strong> · Leuven-Rundtour<br><span style="font-size: 0.78rem; color: var(--ink-soft);">100 km · Hageland</span></span>
+      </a>
+      <a href="https://www.google.com/maps/dir/Leuven/Nivelles/Villers-la-Ville/Gembloux/Namur" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #8a3620;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 4</strong> · Leuven → Namur<br><span style="font-size: 0.78rem; color: var(--ink-soft);">95 km · Villers-la-Ville</span></span>
+      </a>
+      <a href="https://www.google.com/maps/dir/Namur/Profondeville/Dinant/Crupet/Celles/Durbuy" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #5c7a5a;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 5</strong> · Namur → Durbuy<br><span style="font-size: 0.78rem; color: var(--ink-soft);">85 km · Maastal</span></span>
+      </a>
+      <a href="https://www.google.com/maps/dir/Durbuy/La+Roche-en-Ardenne/Stavelot/Spa/Baraque+Michel/Eupen/Aachen" target="_blank" class="map-link" style="display: flex; align-items: center; gap: 0.85rem; padding: 1rem 1.25rem;">
+        <span style="flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: #2b2117;"></span>
+        <span><strong style="font-family: 'Fraunces', serif; font-size: 1rem;">Tag 6</strong> · Durbuy → Aachen<br><span style="font-size: 0.78rem; color: var(--ink-soft);">110 km · Hohes Venn</span></span>
       </a>
     </div>
 
-    <div class="waypoints">
-<strong>Tag 1 · Aachen → Tongeren</strong>
-Aachen · Vaalserberg · Teuven · Kanne · Tongeren
-
-<strong>Tag 2 · Tongeren → Leuven</strong>
-Alden Biesen · Borgloon · Sint-Truiden · Diest · Leuven
-
-<strong>Tag 3 · Leuven Rundtour</strong>
-Aarschot · Scherpenheuvel · Hasselt · Herk-de-Stad · Leuven
-
-<strong>Tag 4 · Leuven → Namur</strong>
-Nivelles · Villers-la-Ville · Gembloux · Namur
-
-<strong>Tag 5 · Namur → Durbuy</strong>
-Profondeville · Dinant · Crupet · Celles · Durbuy
-
-<strong>Tag 6 · Durbuy → Aachen</strong>
-La Roche-en-Ardenne · Stavelot · Spa · Baraque Michel · Eupen · Aachen
+    <div style="margin-top: 2.5rem; padding: 1.5rem 1.75rem; background: var(--cream); border: 1px solid var(--ink);">
+      <div style="font-family: 'Caveat', cursive; font-size: 1.4rem; color: var(--rust); margin-bottom: 0.5rem;">~ Gesamt-Route ~</div>
+      <a href="https://www.google.com/maps/dir/Aachen/Drielandenpunt/Teuven/Kanne/Tongeren/Alden+Biesen/Borgloon/Sint-Truiden/Diest/Leuven/Aarschot/Scherpenheuvel/Hasselt/Nivelles/Villers-la-Ville/Gembloux/Namur/Profondeville/Dinant/Crupet/Celles/Durbuy/La+Roche-en-Ardenne/Stavelot/Spa/Baraque+Michel/Eupen/Aachen" target="_blank" style="color: var(--ink); font-family: 'Fraunces', serif; font-size: 1.05rem;">Alle Etappen in einer Google-Maps-Strecke öffnen ↗</a>
     </div>
   </div>
 </section>
@@ -1271,6 +1276,66 @@ La Roche-en-Ardenne · Stavelot · Spa · Baraque Michel · Eupen · Aachen
     <div class="footer-signature">mit liebe zusammengestellt</div>
   </div>
 </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof L === 'undefined') return;
+
+  var days = [
+    { num: 1, name: 'Aachen → Tongeren', km: '75 km · Voerstreek', color: '#b54b2c',
+      gmaps: 'https://www.google.com/maps/dir/Aachen/Drielandenpunt/Teuven/Kanne/Tongeren',
+      points: [[50.7753,6.0839,'Aachen'],[50.7539,6.0283,'Drielandenpunt'],[50.7467,5.8267,'Teuven'],[50.8133,5.6900,'Kanne'],[50.7801,5.4641,'Tongeren']] },
+    { num: 2, name: 'Tongeren → Leuven', km: '95 km · Haspengouw', color: '#3d5a3a',
+      gmaps: 'https://www.google.com/maps/dir/Tongeren/Alden+Biesen/Borgloon/Sint-Truiden/Diest/Leuven',
+      points: [[50.7801,5.4641,'Tongeren'],[50.8789,5.5300,'Alden Biesen'],[50.8043,5.3467,'Borgloon'],[50.8175,5.1878,'Sint-Truiden'],[50.9870,5.0533,'Diest'],[50.8798,4.7005,'Leuven']] },
+    { num: 3, name: 'Leuven-Rundtour · Hageland', km: '100 km · Hasselt', color: '#c8944a',
+      gmaps: 'https://www.google.com/maps/dir/Leuven/Aarschot/Scherpenheuvel/Hasselt/Herk-de-Stad/Leuven',
+      points: [[50.8798,4.7005,'Leuven'],[50.9860,4.8311,'Aarschot'],[50.9866,4.9767,'Scherpenheuvel'],[50.9307,5.3378,'Hasselt'],[50.9342,5.1700,'Herk-de-Stad'],[50.8798,4.7005,'Leuven']] },
+    { num: 4, name: 'Leuven → Namur', km: '95 km · Villers-la-Ville', color: '#8a3620',
+      gmaps: 'https://www.google.com/maps/dir/Leuven/Nivelles/Villers-la-Ville/Gembloux/Namur',
+      points: [[50.8798,4.7005,'Leuven'],[50.5972,4.3264,'Nivelles'],[50.5855,4.5303,'Villers-la-Ville'],[50.5633,4.6914,'Gembloux'],[50.4669,4.8675,'Namur']] },
+    { num: 5, name: 'Namur → Durbuy · Maastal', km: '85 km · Dinant', color: '#5c7a5a',
+      gmaps: 'https://www.google.com/maps/dir/Namur/Profondeville/Dinant/Crupet/Celles/Durbuy',
+      points: [[50.4669,4.8675,'Namur'],[50.3853,4.8625,'Profondeville'],[50.2606,4.9119,'Dinant'],[50.3644,4.9494,'Crupet'],[50.2475,4.9558,'Celles'],[50.3527,5.4564,'Durbuy']] },
+    { num: 6, name: 'Durbuy → Aachen · Hohes Venn', km: '110 km · Ardennen', color: '#2b2117',
+      gmaps: 'https://www.google.com/maps/dir/Durbuy/La+Roche-en-Ardenne/Stavelot/Spa/Baraque+Michel/Eupen/Aachen',
+      points: [[50.3527,5.4564,'Durbuy'],[50.1833,5.5761,'La Roche-en-Ardenne'],[50.3961,5.9269,'Stavelot'],[50.4925,5.8642,'Spa'],[50.4983,6.0447,'Baraque Michel'],[50.6297,6.0372,'Eupen'],[50.7753,6.0839,'Aachen']] }
+  ];
+
+  var map = L.map('route-map', { scrollWheelZoom: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(map);
+
+  var allPoints = [];
+  days.forEach(function (day) {
+    var latlngs = day.points.map(function (p) { return [p[0], p[1]]; });
+    L.polyline(latlngs, { color: day.color, weight: 4, opacity: 0.85 }).addTo(map);
+    day.points.forEach(function (p, i) {
+      var isEndpoint = (i === 0 || i === day.points.length - 1);
+      var marker = L.circleMarker([p[0], p[1]], {
+        radius: isEndpoint ? 7 : 4,
+        color: '#2b2117',
+        fillColor: day.color,
+        fillOpacity: isEndpoint ? 1 : 0.75,
+        weight: isEndpoint ? 2 : 1
+      }).addTo(map);
+      var popup =
+        '<div style="font-family: Inter, sans-serif; line-height: 1.5; min-width: 180px;">' +
+          '<strong style="color:' + day.color + '; font-family: Fraunces, serif; font-size: 1.05rem;">Tag ' + day.num + ' · ' + p[2] + '</strong><br>' +
+          '<span style="color:#4a3d2e;">' + day.name + '</span><br>' +
+          '<em style="font-size:0.85rem;">' + day.km + '</em><br><br>' +
+          '<a href="' + day.gmaps + '" target="_blank" style="color:' + day.color + '; font-weight:600;">In Google Maps öffnen ↗</a>' +
+        '</div>';
+      marker.bindPopup(popup);
+      allPoints.push([p[0], p[1]]);
+    });
+  });
+
+  map.fitBounds(L.latLngBounds(allPoints), { padding: [30, 30] });
+});
+</script>
 
 </body>
 </html>
