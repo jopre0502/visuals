@@ -1265,7 +1265,7 @@
 
     <div style="margin-top: 2.5rem; padding: 1.5rem 1.75rem; background: var(--cream); border: 1px solid var(--ink);">
       <div style="font-family: 'Caveat', cursive; font-size: 1.4rem; color: var(--rust); margin-bottom: 0.5rem;">~ Gesamt-Route ~</div>
-      <a href="https://www.google.com/maps/dir/Aachen/Dreil%C3%A4ndereck+Vaals/Teuven,+3793+Voeren/Kanne,+Riemst/Tongeren/Schloss+Alden+Biesen,+3740+Bilzen/Borgloon/Sint-Truiden/Diest/Leuven/Aarschot/Scherpenheuvel-Zichem/Hasselt/Nivelles/Villers-la-Ville/Gembloux/Namur/Profondeville/Dinant/Crupet,+5332+Assesse/Celles,+5561+Houyet/Durbuy/La+Roche-en-Ardenne/Stavelot/Spa/Baraque+Michel,+4950+Weismes/Eupen/Aachen" target="_blank" style="color: var(--ink); font-family: 'Fraunces', serif; font-size: 1.05rem;">Alle Etappen in einer Google-Maps-Strecke öffnen ↗</a>
+      <a href="https://www.google.com/maps/dir/Aachen/Dreil%C3%A4ndereck+Deutschland+-+Niederlande+-+Belgien,+Rte+des+Trois+Bornes,+4851+Vaals/Teuven,+3793+Voeren,+Belgien/Kanne,+Riemst,+Belgien/Tongeren,+3700+Tongeren-Borgloon,+Belgien/Schloss+Alden+Biesen,+Kasteelstraat+6,+3740+Bilzen-Hoeselt,+Belgien/Borgloon,+3840+Tongeren-Borgloon,+Belgien/Sint-Truiden,+Belgien/Diest,+Belgien/L%C3%B6wen,+Belgien/Aarschot,+Belgien/Scherpenheuvel-Zichem,+Belgien/Hasselt,+Belgien/Nivelles,+Belgien/Villers-la-Ville,+1495,+Belgien/Gembloux,+Belgien/Namur,+Belgien/Profondeville,+5170,+Belgien/Dinant,+Belgien/Crupet,+5332+Assesse,+Belgien/5561+Houyet,+Belgien/Durbuy,+Belgien/La+Roche-en-Ardenne,+Belgien/Stavelot,+4970,+Belgien/Spa,+Belgien/Baraque+Michel,+4950+Weismes,+Belgien/Eupen,+Belgien/Aachen" target="_blank" style="color: var(--ink); font-family: 'Fraunces', serif; font-size: 1.05rem;">Alle Etappen in einer Google-Maps-Strecke öffnen ↗</a>
     </div>
   </div>
 </section>
@@ -1297,22 +1297,22 @@ document.addEventListener('DOMContentLoaded', function () {
   var days = [
     { num: 1, name: 'Aachen → Tongeren', km: '75 km · Voerstreek', color: '#b54b2c',
       gmaps: 'https://www.google.com/maps/dir/Aachen/Drielandenpunt/Teuven/Kanne/Tongeren',
-      points: [[50.7753,6.0839,'Aachen'],[50.7539,6.0283,'Drielandenpunt'],[50.7467,5.8267,'Teuven'],[50.8133,5.6900,'Kanne'],[50.7801,5.4641,'Tongeren']] },
+      points: [[50.7753,6.0839,'Aachen'],[50.7544,6.0210,'Drielandenpunt'],[50.7518,5.8760,'Teuven'],[50.8141,5.6693,'Kanne'],[50.7822,5.4607,'Tongeren']] },
     { num: 2, name: 'Tongeren → Leuven', km: '95 km · Haspengouw', color: '#3d5a3a',
       gmaps: 'https://www.google.com/maps/dir/Tongeren/Alden+Biesen/Borgloon/Sint-Truiden/Diest/Leuven',
-      points: [[50.7801,5.4641,'Tongeren'],[50.8789,5.5300,'Alden Biesen'],[50.8043,5.3467,'Borgloon'],[50.8175,5.1878,'Sint-Truiden'],[50.9870,5.0533,'Diest'],[50.8798,4.7005,'Leuven']] },
+      points: [[50.7822,5.4607,'Tongeren'],[50.8417,5.5208,'Alden Biesen'],[50.8011,5.3536,'Borgloon'],[50.8187,5.1817,'Sint-Truiden'],[50.9795,5.0557,'Diest'],[50.8791,4.7025,'Leuven']] },
     { num: 3, name: 'Leuven-Rundtour · Hageland', km: '100 km · Hasselt', color: '#c8944a',
       gmaps: 'https://www.google.com/maps/dir/Leuven/Aarschot/Scherpenheuvel/Hasselt/Herk-de-Stad/Leuven',
-      points: [[50.8798,4.7005,'Leuven'],[50.9860,4.8311,'Aarschot'],[50.9866,4.9767,'Scherpenheuvel'],[50.9307,5.3378,'Hasselt'],[50.9342,5.1700,'Herk-de-Stad'],[50.8798,4.7005,'Leuven']] },
+      points: [[50.8791,4.7025,'Leuven'],[50.9924,4.8429,'Aarschot'],[50.9801,4.9753,'Scherpenheuvel'],[50.9305,5.3324,'Hasselt'],[50.9342,5.1700,'Herk-de-Stad'],[50.8791,4.7025,'Leuven']] },
     { num: 4, name: 'Leuven → Namur', km: '95 km · Villers-la-Ville', color: '#8a3620',
       gmaps: 'https://www.google.com/maps/dir/Leuven/Nivelles/Villers-la-Ville/Gembloux/Namur',
-      points: [[50.8798,4.7005,'Leuven'],[50.5972,4.3264,'Nivelles'],[50.5855,4.5303,'Villers-la-Ville'],[50.5633,4.6914,'Gembloux'],[50.4669,4.8675,'Namur']] },
+      points: [[50.8791,4.7025,'Leuven'],[50.5992,4.3272,'Nivelles'],[50.5780,4.5312,'Villers-la-Ville'],[50.5602,4.6918,'Gembloux'],[50.4649,4.8650,'Namur']] },
     { num: 5, name: 'Namur → Durbuy · Maastal', km: '85 km · Dinant', color: '#5c7a5a',
       gmaps: 'https://www.google.com/maps/dir/Namur/Profondeville/Dinant/Crupet,+5332+Assesse/Celles,+5561+Houyet/Durbuy',
-      points: [[50.4669,4.8675,'Namur'],[50.3853,4.8625,'Profondeville'],[50.2606,4.9119,'Dinant'],[50.3644,4.9494,'Crupet'],[50.2298,5.0154,'Celles'],[50.3527,5.4564,'Durbuy']] },
+      points: [[50.4649,4.8650,'Namur'],[50.3875,4.8042,'Profondeville'],[50.2627,4.9106,'Dinant'],[50.3501,4.9612,'Crupet'],[50.2298,5.0154,'Celles'],[50.3520,5.4557,'Durbuy']] },
     { num: 6, name: 'Durbuy → Aachen · Hohes Venn', km: '110 km · Ardennen', color: '#2b2117',
       gmaps: 'https://www.google.com/maps/dir/Durbuy/La+Roche-en-Ardenne/Stavelot/Spa/Baraque+Michel,+4950+Weismes/Eupen/Aachen',
-      points: [[50.3527,5.4564,'Durbuy'],[50.1833,5.5761,'La Roche-en-Ardenne'],[50.3961,5.9269,'Stavelot'],[50.4925,5.8642,'Spa'],[50.5167,6.0667,'Baraque Michel'],[50.6297,6.0372,'Eupen'],[50.7753,6.0839,'Aachen']] }
+      points: [[50.3520,5.4557,'Durbuy'],[50.1800,5.5761,'La Roche-en-Ardenne'],[50.3946,5.9300,'Stavelot'],[50.4925,5.8642,'Spa'],[50.5167,6.0667,'Baraque Michel'],[50.6328,6.0383,'Eupen'],[50.7753,6.0839,'Aachen']] }
   ];
 
   var map = L.map('route-map', { scrollWheelZoom: false });
