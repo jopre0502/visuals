@@ -1,0 +1,33 @@
+{
+  "name": "Roadtrip Benelux — Sechs Tage im Cabrio",
+  "short_name": "Benelux-Roadtrip",
+  "description": "Journal und interaktive Routenkarte für sechs Tage durch Belgien und Zuid-Limburg.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#b54b2c",
+  "background_color": "#faf6ed",
+  "lang": "de",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
