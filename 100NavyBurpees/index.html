@@ -6,7 +6,7 @@
 <title>Burpee Tracker v2 — 100 @ 5 BPM</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0a;--bg-card:#111;--bg-card-alt:#161616;--border:#222;--border-hi:#333;--text:#e8e8e8;--text2:#888;--text3:#555;--accent:#c4ff00;--accent-dim:#6b8a00;--blue:#5ac8fa;--red:#ff3b30;--warn:#ffb800;--green:#34c759}
+:root{--bg:#0a0a0a;--bg-card:#111;--bg-card-alt:#161616;--border:#222;--border-hi:#333;--text:#e8e8e8;--text2:#888;--text3:#555;--accent:#c4ff00;--accent-dim:#6b8a00;--blue:#5ac8fa;--red:#ff3b30;--warn:#ffb800;--green:#34c759;--orange:#ff6b00}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
@@ -37,7 +37,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 .day-btn-label{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;margin-top:0.25rem;line-height:1.1}
 .day-btn:nth-child(1) .day-btn-label{color:var(--accent)}
 .day-btn:nth-child(2) .day-btn-label{color:var(--blue)}
-.day-btn:nth-child(3) .day-btn-label{color:var(--warn)}
+.day-btn:nth-child(3) .day-btn-label{color:var(--orange)}
 
 .stage-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem}
 .stage-row label{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
@@ -94,7 +94,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 .session-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
 .session-card.day-1::before{background:var(--accent)}
 .session-card.day-2::before{background:var(--blue)}
-.session-card.day-3::before{background:var(--warn)}
+.session-card.day-3::before{background:var(--orange)}
 .session-date{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase}
 .session-title{font-size:0.9rem;font-weight:500;margin:0.25rem 0}
 .session-detail{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text2);margin-top:0.5rem}
@@ -175,7 +175,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
     <div class="day-selector">
       <button class="day-btn selected" data-day="1"><div class="day-btn-num">Tag 1</div><div class="day-btn-label">Max Set</div></button>
       <button class="day-btn" data-day="2"><div class="day-btn-num">Tag 2</div><div class="day-btn-label">Intervalle</div></button>
-      <button class="day-btn" data-day="3"><div class="day-btn-num">Tag 3</div><div class="day-btn-label">Technik</div></button>
+      <button class="day-btn" data-day="3"><div class="day-btn-num">Tag 3</div><div class="day-btn-label">Überpace</div></button>
     </div>
     <div id="stage-select" class="stage-row" style="display:none">
       <label>Stufe</label>
@@ -186,6 +186,16 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
         <option value="3">Stufe 3 — 8 Min / 40 Reps / 3 Runden</option>
         <option value="4">Stufe 4 — 10 Min / 50 Reps / 2 Runden</option>
         <option value="5">Stufe 5 — 15 Min / 75 Reps / 2 Runden</option>
+      </select>
+    </div>
+    <div id="stage-select-op" class="stage-row" style="display:none">
+      <label>Stufe</label>
+      <select id="sel-stage-op">
+        <option value="0">Start — 5x6 @ 6 BPM (10s) / 120s Pause</option>
+        <option value="1">Stufe 1 — 5x8 @ 6 BPM / 120s Pause</option>
+        <option value="2">Stufe 2 — 5x6 @ 6.5 BPM (9s) / 90s Pause</option>
+        <option value="3">Stufe 3 — 5x6 @ 7 BPM (8.5s) / 90s Pause</option>
+        <option value="4">Stufe 4 — 8x6 @ 6 BPM / 90s Pause</option>
       </select>
     </div>
     <div id="config-manual" class="config-grid">
@@ -234,7 +244,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <div class="manual-log">
     <h3>Session eintragen</h3>
     <div class="form-row">
-      <div class="form-group"><label>Tag-Typ</label><select id="ml-day"><option value="1">Tag 1 — Max Set</option><option value="2">Tag 2 — Intervalle</option><option value="3">Tag 3 — Technik</option></select></div>
+      <div class="form-group"><label>Tag-Typ</label><select id="ml-day"><option value="1">Tag 1 — Max Set</option><option value="2">Tag 2 — Intervalle</option><option value="3">Tag 3 — Überpace</option></select></div>
       <div class="form-group"><label>Datum</label><input type="date" id="ml-date"></div>
     </div>
     <div class="form-row">
@@ -252,6 +262,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 <!-- PLAN -->
 <div id="v-plan" class="view">
   <div class="plan-section"><div class="plan-label">Intervall-Progression</div><div class="plan-title">Tag 2 — Stufen</div><div id="stage-list"></div></div>
+  <div class="plan-section"><div class="plan-label">Speed Endurance Progression</div><div class="plan-title">Tag 3 — Überpace Stufen</div><div id="stage-list-op"></div></div>
   <div class="plan-section"><div class="plan-label">Meilensteine</div><div class="plan-title">Max Set @ 5 BPM</div><div class="milestone-track" id="ms-track"></div></div>
   <div class="plan-section" id="adaptive-section" style="display:none"><div class="adaptive-box"><div class="adaptive-title">Adaptive Empfehlung</div><div class="adaptive-text" id="adaptive-text"></div></div></div>
   <div class="plan-section"><div class="plan-label">Wochen-Volumen</div><div id="vol-chart"></div></div>
@@ -295,7 +306,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 
 <script>
 // ===== CONFIG =====
-const CIRC=2*Math.PI*100, REP_SEC=12;
+const CIRC=2*Math.PI*100;
 const STAGES=[
   {id:0,label:'Start',work_min:2,work_reps:10,rest_sec:120,rounds:5,total:50},
   {id:1,label:'Stufe 1',work_min:4,work_reps:20,rest_sec:120,rounds:4,total:80},
@@ -304,8 +315,20 @@ const STAGES=[
   {id:4,label:'Stufe 4',work_min:10,work_reps:50,rest_sec:60,rounds:2,total:100},
   {id:5,label:'Stufe 5',work_min:15,work_reps:75,rest_sec:60,rounds:2,total:150}
 ];
+const STAGES_OP=[
+  {id:0,label:'OP Start',reps:5,sec_per_rep:10,rounds:6,rest_sec:120,total:30},
+  {id:1,label:'OP Stufe 1',reps:5,sec_per_rep:10,rounds:8,rest_sec:120,total:40},
+  {id:2,label:'OP Stufe 2',reps:5,sec_per_rep:9,rounds:6,rest_sec:90,total:30},
+  {id:3,label:'OP Stufe 3',reps:5,sec_per_rep:8.5,rounds:6,rest_sec:90,total:30},
+  {id:4,label:'OP Stufe 4',reps:8,sec_per_rep:10,rounds:6,rest_sec:90,total:48}
+];
+const ALL_STAGES=[...STAGES,...STAGES_OP];
 const MILESTONES=[30,50,75,100];
-const DAY_NAMES=['','Max Set @ 5 BPM','Intervalle @ 5 BPM','Technik @ 5 BPM'];
+const DAY_NAMES=['','Max Set @ 5 BPM','Intervalle @ 5 BPM','Überpace @ 6-7 BPM'];
+function getRepSec(){
+  if(selectedDay===3){const st=STAGES_OP[parseInt(document.getElementById('sel-stage-op').value)];return Math.round(st.sec_per_rep)}
+  return 12;
+}
 
 let sessions=[], config={sheetId:'',scriptUrl:''};
 
@@ -367,7 +390,7 @@ function parseCsv(csv){
     if(cols.length<7)continue;
     const sets=cols[3].replace(/"/g,'').split(';').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
     const stageLabel=cols[7]?cols[7].replace(/"/g,'').trim():'';
-    const stageIdx=STAGES.findIndex(s=>s.label===stageLabel);
+    const stageIdx=ALL_STAGES.findIndex(s=>s.label===stageLabel);
     result.push({
       date:cols[0].replace(/"/g,'').trim(),
       day:parseInt(cols[1]),
@@ -418,26 +441,30 @@ document.querySelectorAll('.nav-btn').forEach(b=>{b.addEventListener('click',()=
 
 // ===== DAY SELECT =====
 let selectedDay=1;
-document.querySelectorAll('.day-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.day-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedDay=parseInt(b.dataset.day);document.getElementById('stage-select').style.display=selectedDay===2?'flex':'none';document.getElementById('config-manual').style.display=selectedDay===2?'none':'grid'})});
+document.querySelectorAll('.day-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.day-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selectedDay=parseInt(b.dataset.day);document.getElementById('stage-select').style.display=selectedDay===2?'flex':'none';document.getElementById('stage-select-op').style.display=selectedDay===3?'flex':'none';document.getElementById('config-manual').style.display=(selectedDay===2||selectedDay===3)?'none':'grid'})});
 
 // ===== TIMER ENGINE (identical to v1) =====
 const $arc=document.getElementById('ring-arc'),$cd=document.getElementById('r-cd'),$rlabel=document.getElementById('r-label'),$reps=document.getElementById('r-reps'),$rtarget=document.getElementById('r-target'),$phase=document.getElementById('t-phase'),$mRound=document.getElementById('m-round'),$mTime=document.getElementById('m-time'),$mTotal=document.getElementById('m-total'),$start=document.getElementById('btn-start'),$endset=document.getElementById('btn-endset'),$skip=document.getElementById('btn-skip'),$stop=document.getElementById('btn-stop');
 
-let state='idle',mainTick=null,elapsed=0,curRound=0,totalRounds=0,repsRound=0,repsTotal=0,targetReps=0,repCountdown=REP_SEC,restRemaining=0,setsRecord=[];
+let state='idle',mainTick=null,elapsed=0,curRound=0,totalRounds=0,repsRound=0,repsTotal=0,targetReps=0,repCountdown=12,restRemaining=0,setsRecord=[],curRepSec=12;
 
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
-function getConfig(){if(selectedDay===2){const st=STAGES[parseInt(document.getElementById('sel-stage').value)];return{rounds:st.rounds,workSec:st.work_min*60,restSec:st.rest_sec,targetReps:st.work_reps}}return{rounds:parseInt(document.getElementById('cfg-sets').value)||5,workSec:0,restSec:parseInt(document.getElementById('cfg-rest').value)||150,targetReps:0}}
+function getConfig(){
+  if(selectedDay===2){const st=STAGES[parseInt(document.getElementById('sel-stage').value)];return{rounds:st.rounds,workSec:st.work_min*60,restSec:st.rest_sec,targetReps:st.work_reps}}
+  if(selectedDay===3){const st=STAGES_OP[parseInt(document.getElementById('sel-stage-op').value)];return{rounds:st.rounds,workSec:0,restSec:st.rest_sec,targetReps:st.reps}}
+  return{rounds:parseInt(document.getElementById('cfg-sets').value)||5,workSec:0,restSec:parseInt(document.getElementById('cfg-rest').value)||150,targetReps:0}
+}
 function setRing(f,c){$arc.style.strokeDashoffset=CIRC*(1-f);$arc.className.baseVal='ring-fill'+(c?' '+c:'')}
 function updateRepDisplay(){if(targetReps>0){$reps.innerHTML=repsRound+'<span class="rep-target">/'+targetReps+'</span>'}else{$reps.textContent=repsRound}$mTotal.textContent=repsTotal}
 
 $start.addEventListener('click',()=>{initAudio();if(state==='idle'||state==='done')startSession();else if(state==='paused')resumeSession();else pauseSession()});
 
-function startSession(){const cfg=getConfig();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];state='work';$start.textContent='Pause';$endset.style.display=selectedDay!==2?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
+function startSession(){const cfg=getConfig();curRepSec=getRepSec();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];state='work';$start.textContent='Pause';$endset.style.display=selectedDay===1?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
 
-function startWorkRound(){curRound++;repsRound=0;repCountdown=REP_SEC;const cfg=getConfig();state='work';$phase.className='phase-text work';$phase.textContent=selectedDay===2?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;$mRound.textContent=curRound+'/'+totalRounds;$cd.className='ring-countdown';$rlabel.textContent='Sek / Rep';$skip.style.display='none';$endset.style.display=selectedDay!==2?'inline-block':'none';updateRepDisplay();beepPace();clearInterval(mainTick);
-mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn'}if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=REP_SEC;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/REP_SEC);if(selectedDay===2&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}
+function startWorkRound(){curRound++;repsRound=0;repCountdown=curRepSec;const cfg=getConfig();state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;$mRound.textContent=curRound+'/'+totalRounds;$cd.className='ring-countdown';$rlabel.textContent=curRepSec+'s / Rep';$skip.style.display='none';$endset.style.display=selectedDay===1?'inline-block':'none';updateRepDisplay();beepPace();clearInterval(mainTick);
+mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn'}if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}
 
-$endset.addEventListener('click',()=>{if(state!=='work')return;clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()});
+$endset.addEventListener('click',()=>{if(state!=='work'||selectedDay!==1)return;clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()});
 
 function startRestPhase(){const cfg=getConfig();state='rest';restRemaining=cfg.restSec;$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;$cd.className='ring-countdown rest-color';$cd.textContent=restRemaining;$rlabel.textContent='Pause';$endset.style.display='none';$skip.style.display='inline-block';setRing(1,'rest');beepRest();clearInterval(mainTick);
 mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=3&&restRemaining>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn';beep(660,0.06,0.1)}if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}
@@ -450,11 +477,11 @@ $stop.addEventListener('click',()=>{clearInterval(mainTick);if(repsRound>0)setsR
 
 function pauseSession(){clearInterval(mainTick);state='paused';$start.textContent='Weiter';$phase.textContent+=' ⏸'}
 
-function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const cfg=getConfig();$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=selectedDay===2?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=REP_SEC;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/REP_SEC);if(selectedDay===2&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
+function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const cfg=getConfig();$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
 
-function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent='12';$rlabel.textContent='Sek / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[]}
+function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent=getRepSec();$rlabel.textContent=getRepSec()+'s / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[]}
 
-document.addEventListener('keydown',e=>{if(!document.getElementById('v-timer').classList.contains('active'))return;if(e.code==='Space'){e.preventDefault();$start.click()}if(e.code==='KeyE'&&state==='work'&&selectedDay!==2)$endset.click()});
+document.addEventListener('keydown',e=>{if(!document.getElementById('v-timer').classList.contains('active'))return;if(e.code==='Space'){e.preventDefault();$start.click()}if(e.code==='KeyE'&&state==='work'&&selectedDay===1)$endset.click()});
 
 // ===== MANUAL LOG =====
 document.getElementById('ml-date').valueAsDate=new Date();
@@ -470,8 +497,9 @@ async function manualLog(){
   if(!sets.length){showToast('Reps ungültig','error');return}
   const total=sets.reduce((a,b)=>a+b,0);
   const maxSet=Math.max(...sets);
-  const stageVal=day===2?parseInt(document.getElementById('sel-stage').value):null;
+  const stageVal=day===2?parseInt(document.getElementById('sel-stage').value):day===3?parseInt(document.getElementById('sel-stage-op').value):null;
   const typName=DAY_NAMES[day];
+  const stageLabel=day===2&&stageVal!==null?STAGES[stageVal].label:day===3&&stageVal!==null?STAGES_OP[stageVal].label:'';
 
   const btn=document.getElementById('btn-log');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Speichern...';
@@ -485,7 +513,7 @@ async function manualLog(){
     gesamt:total,
     maxset:maxSet,
     pace,
-    stufe:stageVal!==null?STAGES[stageVal].label:'',
+    stufe:stageLabel,
     notizen:notes
   });
 
@@ -513,7 +541,7 @@ function renderLog(){
     const tc=s.pace==='hit'?'hit':s.pace==='miss'?'miss':'fail';
     const tl=s.pace==='hit'?'Pace gehalten':s.pace==='miss'?'Pace teilweise':'Pace nicht gehalten';
     const ds=new Date(s.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
-    const si=s.stage!==null?' · '+STAGES[s.stage].label:'';
+    const si=s.stage!==null?' · '+ALL_STAGES[s.stage].label:'';
     return`<div class="session-card day-${s.day}"><button class="session-delete" onclick="deleteSession(${i})">&#x2715;</button><div class="session-date">${ds}${si}</div><div class="session-title">${DAY_NAMES[s.day]}</div><div class="session-detail">Sätze: ${s.sets.join(' / ')} · Gesamt: <span>${s.total}</span> · Max: <span>${s.maxSet}</span></div>${s.notes?`<div class="session-detail" style="color:var(--text3)">${s.notes}</div>`:''}<div class="session-tag ${tc}">${tl}</div></div>`
   }).join('');
 }
@@ -535,6 +563,14 @@ function renderPlan(){
   document.getElementById('stage-list').innerHTML=STAGES.map(st=>{
     let c='';if(st.id<cs)c='done';if(st.id===cs)c='current';
     return`<div class="stage-card ${c}"><div class="stage-id">${st.label}</div><div class="stage-info">${st.work_min} Min / ${st.work_reps} Reps · ${st.rest_sec}s Pause · ${st.rounds} Runden</div><div class="stage-total">${st.total}</div></div>`
+  }).join('');
+  // Überpace stages
+  const t3=sessions.filter(s=>s.day===3).sort((a,b)=>b.date.localeCompare(a.date));
+  let csOp=0;if(t3.length>0&&t3[0].stage!==null){const idx=t3[0].stage-STAGES.length;if(idx>=0)csOp=idx}
+  document.getElementById('stage-list-op').innerHTML=STAGES_OP.map(st=>{
+    let c='';if(st.id<csOp)c='done';if(st.id===csOp)c='current';
+    const bpm=Math.round(60/st.sec_per_rep*10)/10;
+    return`<div class="stage-card ${c}" style="border-left:3px solid var(--orange)"><div class="stage-id">${st.label}</div><div class="stage-info">${st.reps} Reps × ${st.rounds} · ${st.sec_per_rep}s/Rep (${bpm} BPM) · ${st.rest_sec}s Pause</div><div class="stage-total" style="color:var(--orange)">${st.total}</div></div>`
   }).join('');
   const mx=sessions.filter(s=>s.day===1).map(s=>s.maxSet),best=mx.length?Math.max(...mx):0;
   document.getElementById('ms-track').innerHTML=MILESTONES.map(ms=>{
