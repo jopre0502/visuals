@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>100 Navy SEAL Burpees — Trainingskonzept</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#0a0a0a;--bg-card:#111;--bg-card-alt:#161616;--border:#222;--border-accent:#333;--text-primary:#e8e8e8;--text-secondary:#888;--text-muted:#555;--accent:#c4ff00;--accent-dim:#6b8a00;--danger:#ff3b30;--warning:#ffb800;--green:#34c759;--blue:#5ac8fa;--orange:#ff6b00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'IBM Plex Sans',sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:3rem 2rem;position:relative;overflow:hidden;background:linear-gradient(175deg,#111 0%,#0a0a0a 40%,#0d1200 100%)}
+.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:800px;height:800px;background:radial-gradient(circle,rgba(196,255,0,0.04) 0%,transparent 60%);pointer-events:none}
+.hero-counter{font-family:'Bebas Neue',sans-serif;font-size:clamp(8rem,25vw,20rem);line-height:0.85;color:var(--accent);letter-spacing:-0.02em;opacity:0;animation:fadeSlideUp 0.8s ease-out 0.2s forwards}
+.hero-label{font-family:'IBM Plex Mono',monospace;font-size:clamp(0.75rem,1.5vw,1rem);color:var(--text-secondary);letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;opacity:0;animation:fadeSlideUp 0.8s ease-out 0.5s forwards}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:0.02em;margin-top:1rem;opacity:0;animation:fadeSlideUp 0.8s ease-out 0.7s forwards}
+.hero-sub{font-size:1rem;color:var(--text-secondary);margin-top:1.5rem;max-width:500px;opacity:0;animation:fadeSlideUp 0.8s ease-out 0.9s forwards}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:0 2rem;position:relative;z-index:1;margin-top:-2rem}
+.stat-cell{background:var(--bg-card);padding:1.5rem;text-align:center}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent);line-height:1}
+.stat-unit{font-family:'IBM Plex Mono',monospace;font-size:1rem;color:var(--accent-dim)}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.15em;margin-top:0.5rem}
+.content{max-width:900px;margin:0 auto;padding:0 2rem}
+section{padding:5rem 0;border-bottom:1px solid var(--border)}
+section:last-child{border-bottom:none}
+.section-num{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--accent-dim);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:0.75rem}
+h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3rem);letter-spacing:0.02em;line-height:1.1;margin-bottom:1.5rem}
+h3{font-family:'IBM Plex Sans',sans-serif;font-size:1rem;font-weight:600;color:var(--text-primary);margin-top:2.5rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border)}
+p{color:var(--text-secondary);margin-bottom:1rem;font-size:0.95rem;max-width:65ch}
+.week-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin:2rem 0}
+.day-card{background:var(--bg-card);border:1px solid var(--border);padding:2rem;position:relative;transition:border-color 0.3s ease}
+.day-card:hover{border-color:var(--accent-dim)}
+.day-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
+.day-card.day-1::before{background:var(--accent)}
+.day-card.day-2::before{background:var(--blue)}
+.day-card.day-3::before{background:var(--orange)}
+.day-number{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.2em;text-transform:uppercase}
+.day-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin:0.5rem 0;line-height:1.1}
+.day-card.day-1 .day-title{color:var(--accent)}
+.day-card.day-2 .day-title{color:var(--blue)}
+.day-card.day-3 .day-title{color:var(--orange)}
+.day-meta{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem}
+.day-desc{color:var(--text-secondary);font-size:0.85rem;margin-top:1rem;line-height:1.6}
+.protocol{background:var(--bg-card);border:1px solid var(--border);margin:2rem 0;overflow:hidden}
+.protocol-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem}
+.protocol-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.protocol-dot.green{background:var(--accent)}.protocol-dot.blue{background:var(--blue)}.protocol-dot.orange{background:var(--orange)}
+.protocol-title{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-primary);letter-spacing:0.1em;text-transform:uppercase;font-weight:500}
+.protocol-body{padding:1.5rem}
+table{width:100%;border-collapse:collapse;font-size:0.85rem}
+thead th{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.15em;text-transform:uppercase;text-align:left;padding:0.75rem 1rem;border-bottom:1px solid var(--border-accent);font-weight:500}
+tbody td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);color:var(--text-secondary)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(196,255,0,0.02)}
+.td-accent{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-weight:600}
+.td-blue{color:var(--blue);font-family:'IBM Plex Mono',monospace;font-weight:600}
+.td-orange{color:var(--orange);font-family:'IBM Plex Mono',monospace;font-weight:600}
+.steps{list-style:none;counter-reset:step}
+.steps li{counter-increment:step;padding:1rem 0 1rem 3.5rem;border-bottom:1px solid var(--border);position:relative;color:var(--text-secondary);font-size:0.9rem}
+.steps li:last-child{border-bottom:none}
+.steps li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:1rem;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent-dim);font-weight:600}
+.step-label{color:var(--text-primary);font-weight:500}
+.callout{border-left:3px solid var(--accent);padding:1.25rem 1.5rem;background:rgba(196,255,0,0.03);margin:1.5rem 0}
+.callout p{color:var(--text-secondary);margin:0;font-size:0.9rem}
+.callout-title{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;font-weight:500}
+.callout.blue{border-left-color:var(--blue);background:rgba(90,200,250,0.03)}.callout.blue .callout-title{color:var(--blue)}
+.callout.orange{border-left-color:var(--orange);background:rgba(255,107,0,0.03)}.callout.orange .callout-title{color:var(--orange)}
+.milestones{position:relative;padding-left:2rem;margin:1.5rem 0}
+.milestones::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:1px;background:var(--border-accent)}
+.milestone{position:relative;padding:1rem 0 1.5rem 1.5rem}
+.milestone::before{content:'';position:absolute;left:-2rem;top:1.35rem;width:11px;height:11px;border-radius:50%;border:2px solid var(--border-accent);background:var(--bg-primary)}
+.milestone.active::before{border-color:var(--accent);background:var(--accent);box-shadow:0 0 8px rgba(196,255,0,0.3)}
+.milestone-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1}
+.milestone:nth-child(1) .milestone-num{color:var(--text-muted)}.milestone:nth-child(2) .milestone-num{color:var(--text-secondary)}.milestone:nth-child(3) .milestone-num{color:var(--blue)}.milestone:nth-child(4) .milestone-num{color:var(--accent)}
+.milestone-label{font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem}
+.milestone-pace{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.15rem}
+.volume-row{display:grid;grid-template-columns:60px 1fr 80px;align-items:center;gap:1rem;padding:0.75rem 0;border-bottom:1px solid var(--border)}
+.volume-row:last-child{border-bottom:none}
+.volume-week{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-muted)}
+.volume-bar-wrap{height:24px;background:var(--bg-card-alt);border-radius:2px;overflow:hidden}
+.volume-bar-fill{height:100%;border-radius:2px}.volume-bar-fill.normal{background:linear-gradient(90deg,var(--accent-dim),var(--accent))}.volume-bar-fill.deload{background:linear-gradient(90deg,#333,#555)}
+.volume-num{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--text-secondary);text-align:right}
+.red-flags{display:grid;gap:0.75rem;margin:1.5rem 0}
+.red-flag{display:flex;align-items:flex-start;gap:0.75rem;padding:1rem;background:rgba(255,59,48,0.05);border:1px solid rgba(255,59,48,0.15)}
+.red-flag-icon{color:var(--danger);font-size:0.9rem;flex-shrink:0;margin-top:1px}
+.red-flag-text{font-size:0.85rem;color:var(--text-secondary)}
+.ref-box{background:var(--bg-card);border:1px solid var(--border);padding:1.5rem;margin:1rem 0}
+.ref-box p{font-size:0.8rem;color:var(--text-muted);line-height:1.8;margin-bottom:0.5rem}
+.ref-box p:last-child{margin-bottom:0}
+.footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border)}
+.footer p{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-muted);max-width:none;margin:0 auto}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.hero{padding:2rem 1.5rem}.stats-bar{margin:0 1rem;margin-top:-1.5rem;grid-template-columns:repeat(2,1fr)}.content{padding:0 1.5rem}section{padding:3rem 0}.week-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-counter">100</div>
+  <div class="hero-label">Navy SEAL Burpees @ 5 BPM — am Stück</div>
+  <div class="hero-title">Trainingskonzept</div>
+  <div class="hero-sub">3-Tage-System: Max Set, Intervalle, Speed Endurance. Basierend auf Bangsbo (SET), Verkhoshansky/Issurin (Block-Periodisierung) und Motorik-Forschung (Whole Practice).</div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-cell"><div class="stat-value">20</div><div class="stat-label">Max Set @ 4 BPM</div></div>
+  <div class="stat-cell"><div class="stat-value">5 <span class="stat-unit">BPM</span></div><div class="stat-label">Zielpace</div></div>
+  <div class="stat-cell"><div class="stat-value">12 <span class="stat-unit">Sek</span></div><div class="stat-label">Pro Rep</div></div>
+  <div class="stat-cell"><div class="stat-value">20 <span class="stat-unit">Min</span></div><div class="stat-label">Zieldauer</div></div>
+</div>
+
+<div class="content">
+
+  <section>
+    <div class="section-num">01 — Struktur</div>
+    <h2>Drei Tage. Drei Reize.</h2>
+    <p>Jeder Trainingstag setzt einen strukturell anderen Stimulus. Nicht konsekutiv. Mindestens ein Ruhetag dazwischen.</p>
+    <div class="week-grid">
+      <div class="day-card day-1"><div class="day-number">Tag 1 — z.B. Montag</div><div class="day-title">Max Set @ Zielpace</div><div class="day-meta">RPE 8–9 · Muskuläre Endurance</div><div class="day-desc">All-out bei exakt 5 BPM bis zum technischen Versagen oder Pace-Abfall. Dann Folgesätze bei 60–70%. Treibt die Einzelsatz-Kapazität bei Zielpace nach oben.</div></div>
+      <div class="day-card day-2"><div class="day-number">Tag 2 — z.B. Mittwoch</div><div class="day-title">Intervalle @ Zielpace</div><div class="day-meta">RPE 7–8 · Kardiovaskulär</div><div class="day-desc">Arbeitsblöcke bei exakt 5 BPM mit definierten Pausen. Blockdauer steigt progressiv. Trainiert 20-Minuten-Dauerbelastung bei Zielpace. Der wichtigste Tag.</div></div>
+      <div class="day-card day-3"><div class="day-number">Tag 3 — z.B. Freitag</div><div class="day-title">Speed Endurance</div><div class="day-meta">RPE 9/Satz, 6 gesamt · Neuromuskulär</div><div class="day-desc">Kurze Sätze bei 6–7 BPM (supramaximal). Erzwingt neuromuskuläre Adaptationen, die 5 BPM submaximal erscheinen lassen. Niedriges Gesamtvolumen, hohe Pace.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 — Tag 1</div>
+    <h2>Max Set @ Zielpace</h2>
+    <div class="protocol"><div class="protocol-header"><div class="protocol-dot green"></div><div class="protocol-title">Ablauf</div></div><div class="protocol-body">
+      <ol class="steps">
+        <li><span class="step-label">Aufwärmen</span> — 5 Min leichtes Cardio, Hüftkreise, Schulterrotation, Handgelenke</li>
+        <li><span class="step-label">Satz 1: All-out bei 5 BPM</span> — Timer auf 12-Sek-Intervalle. Bis zum technischen Versagen oder Pace-Abfall unter 5 BPM.</li>
+        <li><span class="step-label">Pause</span> — 2–3 Minuten</li>
+        <li><span class="step-label">Sätze 2–5</span> — Jeweils 60–70% des Max-Sets, ebenfalls bei 5 BPM</li>
+        <li><span class="step-label">Pause zwischen Folgesätzen</span> — 90 Sekunden</li>
+      </ol>
+    </div></div>
+    <h3>Beispiel bei aktuellem Stand</h3>
+    <p>Max-Set bei 5 BPM liegt vermutlich unter 20 (aktuell 20 @ 4 BPM).</p>
+    <div class="protocol"><div class="protocol-body"><table><thead><tr><th>Satz</th><th>Reps @ 5 BPM</th><th>Pause</th></tr></thead><tbody>
+      <tr><td class="td-accent">1 (All-out)</td><td>~15 (geschätzt)</td><td>2–3 Min</td></tr>
+      <tr><td>2</td><td>10</td><td>90 Sek</td></tr><tr><td>3</td><td>10</td><td>90 Sek</td></tr><tr><td>4</td><td>9</td><td>90 Sek</td></tr><tr><td>5</td><td>9</td><td>—</td></tr>
+      <tr><td style="font-weight:600;color:var(--text-primary)">Gesamt</td><td class="td-accent" style="font-weight:600">~53</td><td></td></tr>
+    </tbody></table></div></div>
+    <div class="callout"><div class="callout-title">Abbruchkriterien</div><p>Zwei Gründe für Satzende: Technisches Versagen ODER Pace fällt unter 5 BPM. Wer anfängt, auf 4 BPM abzufallen, beendet den Satz.</p></div>
+  </section>
+
+  <section>
+    <div class="section-num">03 — Tag 2</div>
+    <h2>Intervalle @ Zielpace</h2>
+    <p>100 Burpees bei 5 BPM = 20 Minuten ununterbrochene Arbeit bei einer Rep alle 12 Sekunden. Intervalle bei Zielpace trainieren Herzfrequenzregulation und Laktatmanagement.</p>
+    <div class="protocol"><div class="protocol-header"><div class="protocol-dot blue"></div><div class="protocol-title">Progression</div></div><div class="protocol-body"><table><thead><tr><th>Phase</th><th>Arbeitsblock</th><th>Pause</th><th>Runden</th><th>Gesamt</th></tr></thead><tbody>
+      <tr><td>Start</td><td>2 Min / 10 Reps</td><td>2 Min</td><td>5</td><td class="td-blue">50</td></tr>
+      <tr><td>Stufe 1</td><td>4 Min / 20 Reps</td><td>2 Min</td><td>4</td><td class="td-blue">80</td></tr>
+      <tr><td>Stufe 2</td><td>5 Min / 25 Reps</td><td>90 Sek</td><td>4</td><td class="td-blue">100</td></tr>
+      <tr><td>Stufe 3</td><td>8 Min / 40 Reps</td><td>90 Sek</td><td>3</td><td class="td-blue">120</td></tr>
+      <tr><td>Stufe 4</td><td>10 Min / 50 Reps</td><td>60 Sek</td><td>2</td><td class="td-blue">100</td></tr>
+      <tr><td>Stufe 5</td><td>15 Min / 75 Reps</td><td>60 Sek</td><td>2</td><td class="td-blue">150</td></tr>
+    </tbody></table></div></div>
+    <div class="callout blue"><div class="callout-title">Zwischenziel</div><p>2x 50 Reps bei 5 BPM mit nur 60 Sekunden Pause. Wenn das steht, sind 100 am Stück in Reichweite.</p></div>
+  </section>
+
+  <section>
+    <div class="section-num">04 — Tag 3</div>
+    <h2>Speed Endurance / Überpace</h2>
+    <p>Kurze All-out-Blöcke bei 6–7 BPM (8–10 Sek/Rep). Die supramaximale Pace erzwingt neuromuskuläre Adaptationen: schnellere Rekrutierung, effizientere Ionenregulation, verbesserte Bewegungsökonomie. Effekt: 5 BPM fühlt sich submaximal an.</p>
+
+    <div class="callout orange"><div class="callout-title">Wissenschaftliche Grundlage</div><p>Bangsbo et al. (2009, 2025): Speed Endurance Training (10–30 Sek All-out, lange Pausen) verbessert die Leistung bei Belastungsdauern von 20 Sek bis 60 Min. Skovgaard et al. (2018): 10 SET-Sessions verbesserten 10km-Leistung um 3.2% und Laufökonomie um 2% — trotz 36% weniger Trainingsvolumen. Motorik-Forschung (Magill & Anderson): Bei fortgeschrittenen Sportlern ist Whole Practice (komplette Burpees) effektiver als Part Practice (isolierte Komponenten).</p></div>
+
+    <div class="protocol"><div class="protocol-header"><div class="protocol-dot orange"></div><div class="protocol-title">Ablauf</div></div><div class="protocol-body">
+      <ol class="steps">
+        <li><span class="step-label">Aufwärmen</span> — 5 Min Cardio + 5 Burpees bei normalem Tempo</li>
+        <li><span class="step-label">6–8 Sätze à 5 Reps bei 6–7 BPM</span> — Timer auf 8–10-Sek-Intervalle. Maximale Bewegungsgeschwindigkeit bei sauberer Technik.</li>
+        <li><span class="step-label">Pause</span> — 90–120 Sekunden zwischen Sätzen</li>
+      </ol>
+    </div></div>
+
+    <h3>Progression</h3>
+    <div class="protocol"><div class="protocol-body"><table><thead><tr><th>Phase</th><th>Reps/Satz</th><th>Pace</th><th>Sätze</th><th>Pause</th><th>Gesamt</th></tr></thead><tbody>
+      <tr><td>Start</td><td>5</td><td class="td-orange">6 BPM (10s)</td><td>6</td><td>120 Sek</td><td>30</td></tr>
+      <tr><td>Stufe 1</td><td>5</td><td class="td-orange">6 BPM</td><td>8</td><td>120 Sek</td><td>40</td></tr>
+      <tr><td>Stufe 2</td><td>5</td><td class="td-orange">6.5 BPM (9s)</td><td>6</td><td>90 Sek</td><td>30</td></tr>
+      <tr><td>Stufe 3</td><td>5</td><td class="td-orange">7 BPM (8.5s)</td><td>6</td><td>90 Sek</td><td>30</td></tr>
+      <tr><td>Stufe 4</td><td>8</td><td class="td-orange">6 BPM</td><td>6</td><td>90 Sek</td><td>48</td></tr>
+    </tbody></table></div></div>
+
+    <div class="callout orange"><div class="callout-title">Warum nicht Komponentenarbeit</div><p>Isolierte Push-ups oder Squat Jumps verbessern nicht die Transition zwischen den Elementen. Bei 5 BPM (12 Sek/Rep) ist die fliessende Transition der Engpass. Überpace als Whole Practice trainiert exakt diese Verknüpfung unter verschärften Bedingungen.</p></div>
+  </section>
+
+  <section>
+    <div class="section-num">05 — Periodisierung</div>
+    <h2>Volumen & Deload</h2>
+    <p>Wochenvolumen um ~10–15% steigern. Jede 4. Woche Deload mit 40–50% Reduktion. Nicht verhandelbar.</p>
+    <h3>Wochenvolumen (Beispiel)</h3>
+    <div style="margin:1.5rem 0">
+      <div class="volume-row"><div class="volume-week">W1</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:60%"></div></div><div class="volume-num">150</div></div>
+      <div class="volume-row"><div class="volume-week">W2</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:68%"></div></div><div class="volume-num">170</div></div>
+      <div class="volume-row"><div class="volume-week">W3</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:76%"></div></div><div class="volume-num">190</div></div>
+      <div class="volume-row"><div class="volume-week">W4 <span style="color:var(--warning);font-size:0.6rem">DELOAD</span></div><div class="volume-bar-wrap"><div class="volume-bar-fill deload" style="width:40%"></div></div><div class="volume-num">100</div></div>
+      <div class="volume-row"><div class="volume-week">W5</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:80%"></div></div><div class="volume-num">200</div></div>
+      <div class="volume-row"><div class="volume-week">W6</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:90%"></div></div><div class="volume-num">225</div></div>
+      <div class="volume-row"><div class="volume-week">W7</div><div class="volume-bar-wrap"><div class="volume-bar-fill normal" style="width:100%"></div></div><div class="volume-num">250</div></div>
+      <div class="volume-row"><div class="volume-week">W8 <span style="color:var(--warning);font-size:0.6rem">DELOAD</span></div><div class="volume-bar-wrap"><div class="volume-bar-fill deload" style="width:52%"></div></div><div class="volume-num">130</div></div>
+    </div>
+    <h3>Overreaching-Block (optional, alle 3–4 Wochen)</h3>
+    <p>2 Tage Back-to-Back (z.B. Fr + Sa), dann 3–4 Tage komplett Pause. Basierend auf Block-Periodisierung nach Verkhoshansky/Issurin.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 — Meilensteine</div>
+    <h2>Checkpoints</h2>
+    <p>Alle 3–4 Wochen nach einem Deload einen Max-Attempt bei 5 BPM durchführen.</p>
+    <div class="milestones">
+      <div class="milestone active"><div class="milestone-num">30</div><div class="milestone-label">Basis-Endurance bei Zielpace steht</div><div class="milestone-pace">@ 5 BPM = 6 Minuten</div></div>
+      <div class="milestone"><div class="milestone-num">50</div><div class="milestone-label">Halbzeit. Pacing und Atmung werden kritisch.</div><div class="milestone-pace">@ 5 BPM = 10 Minuten</div></div>
+      <div class="milestone"><div class="milestone-num">75</div><div class="milestone-label">Mentale Komponente wird dominant.</div><div class="milestone-pace">@ 5 BPM = 15 Minuten</div></div>
+      <div class="milestone"><div class="milestone-num">100</div><div class="milestone-label">Ziel erreicht.</div><div class="milestone-pace">@ 5 BPM = 20 Minuten</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">07 — Monitoring</div>
+    <h2>Red Flags</h2>
+    <p>Bei diesen Signalen Training pausieren und evaluieren.</p>
+    <div class="red-flags">
+      <div class="red-flag"><div class="red-flag-icon">&#x25CF;</div><div class="red-flag-text">Ruhepuls morgens >10 Schläge über normal</div></div>
+      <div class="red-flag"><div class="red-flag-icon">&#x25CF;</div><div class="red-flag-text">Gelenkschmerzen (nicht Muskelkater) über 48 Stunden</div></div>
+      <div class="red-flag"><div class="red-flag-icon">&#x25CF;</div><div class="red-flag-text">Leistungsabfall über 2+ Wochen trotz Deload</div></div>
+      <div class="red-flag"><div class="red-flag-icon">&#x25CF;</div><div class="red-flag-text">Schlafstörungen, Appetitlosigkeit, anhaltende Müdigkeit</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">08 — Quellen</div>
+    <h2>Wissenschaftliche Grundlagen</h2>
+    <div class="ref-box">
+      <p>Bangsbo, J., Kissow, J., Hostrup, M. (2025). Speed Endurance Training to Improve Performance. <em>Scand J Med Sci Sports.</em></p>
+      <p>Skovgaard, C. et al. (2018). Effect of speed endurance training on running economy and single muscle fiber adaptations. <em>Physiological Reports</em>, 6(3).</p>
+      <p>Bangsbo, J. et al. (2009). Reduced volume and increased training intensity elevate muscle Na+-K+ pump. <em>J Appl Physiol</em>, 107(6).</p>
+      <p>Issurin, V. (2008). Block periodization versus traditional training theory. <em>J Sports Med Phys Fitness</em>, 48(1), 65-75.</p>
+      <p>Verkhoshansky, Y. <em>Special Strength Training Manual for Coaches.</em></p>
+      <p>Magill, R. & Anderson, D. <em>Motor Learning and Control</em> (11th ed.). Whole and Part Practice.</p>
+      <p>Aubry, A. et al. (2014). Functional Overreaching. <em>Medicine & Science in Sports & Exercise.</em></p>
+    </div>
+  </section>
+
+</div>
+<div class="footer"><p>100 Navy SEAL Burpees @ 5 BPM — Trainingskonzept · Stand Mai 2026</p></div>
+</body>
+</html>
