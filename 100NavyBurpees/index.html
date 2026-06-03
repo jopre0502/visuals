@@ -426,7 +426,7 @@ function parseCsv(csv){
   for(let i=1;i<lines.length;i++){
     const cols=parseCSVLine(lines[i]);
     if(cols.length<7)continue;
-    const sets=cols[3].replace(/"/g,'').split(';').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+    const sets=cols[3].replace(/"/g,'').split(/[,;]/).map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
     const stageLabel=cols[7]?cols[7].replace(/"/g,'').trim():'';
     const stageIdx=ALL_STAGES.findIndex(s=>s.label===stageLabel);
     result.push({

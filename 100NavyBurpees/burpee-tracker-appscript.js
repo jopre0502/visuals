@@ -51,8 +51,9 @@ function doPost(e) {
     if (data.action === 'delete') {
       // Zeile anhand von Datum + Tag + Gesamt finden und löschen.
       // Datum, Tag und Gesamt werden BEIDSEITIG identisch normalisiert (normDate /
-      // String-trim), damit Typ-/Formatunterschiede (Date-Objekt vs. ISO-String,
-      // Number vs. String) den Vergleich nicht stillschweigend scheitern lassen.
+      // rowTotal / String-trim), damit Typ-/Format-/Schema-Unterschiede den Vergleich
+      // nicht stillschweigend scheitern lassen. rowTotal faengt Alt-Zeilen mit leerer
+      // Gesamt-Zelle ab, indem es die Summe der (komma- ODER semikolon-getrennten) Saetze nimmt.
       const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
       const rows = sheet.getDataRange().getValues();
       const wantDatum = normDate(data.datum, tz);
@@ -60,7 +61,7 @@ function doPost(e) {
       for (let i = rows.length - 1; i >= 1; i--) {
         if (normDate(rows[i][0], tz) === wantDatum
             && String(rows[i][1]).trim() == String(data.tag).trim()
-            && String(rows[i][4]).trim() == String(data.gesamt).trim()) {
+            && rowTotal(rows[i]) == String(data.gesamt).trim()) {
           sheet.deleteRow(i + 1);
           deleted = true;
           break;
@@ -105,16 +106,17 @@ function doGet(e) {
       for (let i = 1; i < rows.length; i++) {
         const dOk = normDate(rows[i][0], tz) === wantDatum;
         const tOk = String(rows[i][1]).trim() == String(p.tag).trim();
-        const gOk = String(rows[i][4]).trim() == String(p.gesamt).trim();
+        const gOk = rowTotal(rows[i]) == String(p.gesamt).trim();
         if (dOk || (tOk && gOk)) {  // auch Beinahe-Treffer zeigen, um Mismatch zu sehen
           treffer.push({
-            zeile: i + 1, datum: normDate(rows[i][0], tz), tag: rows[i][1], gesamt: rows[i][4],
+            zeile: i + 1, datum: normDate(rows[i][0], tz), tag: rows[i][1],
+            gesamt: rowTotal(rows[i]), gesamt_zelle: rows[i][4], saetze: rows[i][3],
             datumOk: dOk, tagOk: tOk, gesamtOk: gOk, wuerdeLoeschen: dOk && tOk && gOk
           });
         }
       }
       return ContentService
-        .createTextOutput(JSON.stringify({ version: 'v3', gesucht: { datum: wantDatum, tag: p.tag, gesamt: p.gesamt }, treffer: treffer }, null, 2))
+        .createTextOutput(JSON.stringify({ version: 'v4', gesucht: { datum: wantDatum, tag: p.tag, gesamt: p.gesamt }, treffer: treffer }, null, 2))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -130,7 +132,7 @@ function doGet(e) {
       });
     }
     return ContentService
-      .createTextOutput(JSON.stringify({ version: 'v3', timezone: tz, datenzeilen: rows.length - 1, letzte: letzte }, null, 2))
+      .createTextOutput(JSON.stringify({ version: 'v4', timezone: tz, datenzeilen: rows.length - 1, letzte: letzte }, null, 2))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -156,6 +158,17 @@ function normDate(value, tz) {
   const d = new Date(s);
   if (!isNaN(d.getTime())) return Utilities.formatDate(d, tz, 'yyyy-MM-dd');
   return s;  // nicht parsebar -> roh vergleichen (Fallback)
+}
+
+// Effektives Gesamt einer Zeile als String. Bevorzugt die explizite Gesamt-Spalte (E);
+// ist sie leer (Alt-Zeilen vor dem aktuellen Schema), wird die Summe der Saetze (D)
+// gebildet. Saetze koennen komma- ODER semikolon-getrennt sein (Alt vs. neu).
+function rowTotal(row) {
+  const explicit = String(row[4] == null ? '' : row[4]).trim();
+  if (explicit !== '') return explicit;
+  const sets = String(row[3] == null ? '' : row[3]).split(/[,;]/)
+    .map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n));
+  return sets.length ? String(sets.reduce((a, b) => a + b, 0)) : '';
 }
 
 // Laengen-sicherer, inhaltlich konstanter String-Vergleich (mindert Timing-Angriffe).
