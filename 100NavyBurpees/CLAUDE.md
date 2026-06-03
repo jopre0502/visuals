@@ -12,9 +12,9 @@ Gehostet als statische HTML-Seite auf GitHub Pages, Backend via Google Sheets.
 
 ```
 100NavyBurpees/
-├── index.html          # Kompletter Monolith (HTML + CSS + JS)
-├── appscript.js        # Google Apps Script für Sheet-Backend (Copy-Paste in GAS Editor)
-└── CLAUDE.md           # Diese Datei
+├── index.html                    # Kompletter Monolith (HTML + CSS + JS)
+├── burpee-tracker-appscript.js   # Google Apps Script für Sheet-Backend (Copy-Paste in GAS Editor)
+└── CLAUDE.md                     # Diese Datei
 ```
 
 **Bewusste Entscheidung: Monolith.** Kein Build-System, kein Framework, kein Bundler. Eine einzige HTML-Datei mit inlined CSS und JS. Deployment = File kopieren. Das soll so bleiben.
@@ -89,6 +89,26 @@ Datum | Tag | Typ | Saetze | Gesamt | MaxSet | Pace | Stufe | Notizen
 
 Saetze werden mit Semikolon getrennt gespeichert ("15;10;10;9").
 
+## Google Sheets Backend — Setup & Troubleshooting
+
+### Web-App-Deployment (kritisch)
+
+Das Apps Script muss als Web-App so bereitgestellt sein, dass die statische Seite **anonym** schreiben darf:
+
+- **Ausführen als:** Ich (Sheet-Owner) — Script schreibt mit Owner-Rechten, kein Nutzer-Login nötig
+- **Zugriff:** Jeder — NICHT "Jeder mit Google-Konto" (das erzwingt eine Login-Seite)
+- Im Tracker die **`/exec`**-URL eintragen, NIE die `/dev`-URL (letztere verlangt immer Login)
+- Nach Code-Änderungen: neu bereitstellen, sonst läuft die alte Version weiter
+
+### Bekannter Fallstrick: stiller Schreibfehler
+
+`postToSheet` nutzt `mode:'no-cors'`, weil Apps-Script-Antworten keine CORS-Header tragen. Die POST-Antwort ist dadurch unsichtbar — ein falsch konfiguriertes Deployment schlägt **still** fehl, der Client meldet trotzdem Erfolg. Absicherung: `verifyInSheet()` liest nach jedem Schreiben das Sheet zurück (Single Source of Truth) und bestätigt nur real angekommene Einträge. Match-Schlüssel: `Datum + Tag + Gesamt`.
+
+### Diagnose-Tests
+
+- `/exec`-URL im **Inkognito-Fenster** öffnen → muss `Burpee Tracker Backend aktiv.` zeigen (nicht Login). Simuliert den anonymen Zugriff der statischen Seite.
+- Roh-CSV prüfen: `docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:csv` (zeigt, wie Datum/Spalten ankommen)
+
 ## Timer-Engine
 
 ### Zustände
@@ -127,8 +147,8 @@ Im Plan-View werden automatisch Empfehlungen generiert:
 
 ## Offene Punkte / Roadmap
 
-- [ ] Google Sheet tatsächlich anlegen und verbinden
-- [ ] Auf GitHub Pages deployen und testen
+- [x] Google Sheet anlegen und verbinden (erledigt 2026-06-03)
+- [x] Auf GitHub Pages deployen und testen (erledigt 2026-06-03)
 - [ ] PWA-Manifest + Service Worker für Offline-Fähigkeit (Timer muss ohne Netz funktionieren)
 - [ ] Vibration API als Alternative/Ergänzung zu Audio-Beeps (Handy in der Tasche beim Training)
 - [ ] Max-Attempt-Modus: Spezieller Timer für Testläufe (alle 3-4 Wochen nach Deload)

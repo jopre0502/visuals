@@ -361,15 +361,18 @@ function sheetCsvUrl(){
   return`https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq?tqx=out:csv`;
 }
 
+async function fetchSessions(){
+  const resp=await fetch(sheetCsvUrl());
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  return parseCsv(await resp.text());
+}
+
 async function fetchFromSheet(){
   if(!config.sheetId){showToast('Keine Sheet-ID konfiguriert','error');return}
   const dot=document.getElementById('s-dot'),txt=document.getElementById('s-text');
   try{
     txt.innerHTML='<span class="spinner"></span>Lade Daten...';
-    const resp=await fetch(sheetCsvUrl());
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const csv=await resp.text();
-    sessions=parseCsv(csv);
+    sessions=await fetchSessions();
     dot.className='status-dot ok';
     txt.textContent=`Sheet verbunden — ${sessions.length} Sessions`;
     renderAll();
@@ -378,6 +381,24 @@ async function fetchFromSheet(){
     txt.textContent='Fehler: '+e.message;
     showToast('Sheet-Verbindung fehlgeschlagen','error');
   }
+}
+
+// Read-back-Verifikation: bestaetigt einen Schreibvorgang ueber den funktionierenden
+// Lese-Kanal. no-cors macht die POST-Antwort unsichtbar — also lesen wir das Sheet
+// (Single Source of Truth) neu ein und pruefen den Datensatz (Match: Datum+Tag+Gesamt).
+//   expectPresent=true  -> bestaetigt, sobald der Eintrag erscheint (add)
+//   expectPresent=false -> bestaetigt, sobald der Eintrag verschwunden ist (delete)
+async function verifyInSheet(match,expectPresent=true,tries=2,delay=2500){
+  for(let t=0;t<tries;t++){
+    await new Promise(r=>setTimeout(r,delay));
+    try{
+      sessions=await fetchSessions();renderAll();
+      const present=sessions.some(s=>s.date===match.date&&s.day===match.day&&s.total===match.total);
+      if(present===expectPresent)return true;
+    }catch(e){/* Lesefehler — naechster Versuch */}
+    delay=2000;
+  }
+  return false;
 }
 
 function parseCsv(csv){
@@ -504,7 +525,7 @@ async function manualLog(){
   const btn=document.getElementById('btn-log');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Speichern...';
 
-  const ok=await postToSheet({
+  const sent=await postToSheet({
     action:'add',
     datum:date,
     tag:day,
@@ -517,17 +538,19 @@ async function manualLog(){
     notizen:notes
   });
 
+  if(sent===false){btn.disabled=false;btn.textContent='Eintragen';return}
+
+  // Read-back: erst bestaetigen, wenn der Eintrag wirklich im Sheet auftaucht
+  btn.innerHTML='<span class="spinner"></span>Prüfe...';
+  const confirmed=await verifyInSheet({date,day,total});
   btn.disabled=false;btn.textContent='Eintragen';
 
-  if(ok!==false){
-    // Lokal hinzufügen (Sheet wird asynchron aktualisiert)
-    sessions.unshift({date,day,sets,total,maxSet,pace,stage:stageVal,notes});
-    renderLog();
+  if(confirmed){
     showToast(`${total} Reps eingetragen`);
     document.getElementById('ml-reps').value='';
     document.getElementById('ml-notes').value='';
-    // Refresh from sheet nach kurzer Wartezeit (Apps Script braucht ~1-2s)
-    setTimeout(fetchFromSheet,2500);
+  }else{
+    showToast('Nicht im Sheet angekommen — Verbindung/Deployment prüfen','error');
   }
 }
 
@@ -549,11 +572,13 @@ function renderLog(){
 async function deleteSession(idx){
   const s=sessions[idx];
   if(!confirm(`Session vom ${s.date} löschen?`))return;
-  await postToSheet({action:'delete',datum:s.date,tag:s.day,gesamt:s.total});
-  sessions.splice(idx,1);
-  renderLog();
-  showToast('Gelöscht');
-  setTimeout(fetchFromSheet,2500);
+  const sent=await postToSheet({action:'delete',datum:s.date,tag:s.day,gesamt:s.total});
+  if(sent===false)return;
+  showToast('Lösche…');
+  // Read-back: erst bestaetigen, wenn der Eintrag wirklich aus dem Sheet verschwunden ist
+  const gone=await verifyInSheet({date:s.date,day:s.day,total:s.total},false);
+  if(gone)showToast('Gelöscht');
+  else showToast('Löschen nicht bestätigt — Sheet prüfen','error');
 }
 
 // ===== PLAN RENDER =====
