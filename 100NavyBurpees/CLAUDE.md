@@ -97,12 +97,19 @@ Das Apps Script muss als Web-App so bereitgestellt sein, dass die statische Seit
 
 - **Ausführen als:** Ich (Sheet-Owner) — Script schreibt mit Owner-Rechten, kein Nutzer-Login nötig
 - **Zugriff:** Jeder — NICHT "Jeder mit Google-Konto" (das erzwingt eine Login-Seite)
+- **API-Token:** Skripteigenschaft `API_TOKEN` setzen (Projekteinstellungen → Skripteigenschaften) UND denselben Wert im Tracker unter Setup → API Token eintragen — sonst wird fail-closed nichts geschrieben
 - Im Tracker die **`/exec`**-URL eintragen, NIE die `/dev`-URL (letztere verlangt immer Login)
 - Nach Code-Änderungen: neu bereitstellen, sonst läuft die alte Version weiter
 
 ### Bekannter Fallstrick: stiller Schreibfehler
 
 `postToSheet` nutzt `mode:'no-cors'`, weil Apps-Script-Antworten keine CORS-Header tragen. Die POST-Antwort ist dadurch unsichtbar — ein falsch konfiguriertes Deployment schlägt **still** fehl, der Client meldet trotzdem Erfolg. Absicherung: `verifyInSheet()` liest nach jedem Schreiben das Sheet zurück (Single Source of Truth) und bestätigt nur real angekommene Einträge. Match-Schlüssel: `Datum + Tag + Gesamt`.
+
+### Sicherheit (Security-Review 2026-06-03)
+
+- **Auth:** Shared-Secret-Token (`API_TOKEN`), serverseitig fail-closed via `safeEqual()`. Token liegt client-seitig in localStorage — Härtung gegen URL-Leaks/Bots, kein Schutz gegen Traffic-Inspection (public static page). Echter Schutz nur via Login + OAuth.
+- **Formula Injection:** `add` markiert Strings mit führendem `=,+,-,@` per `'` als Text.
+- **XSS:** Freitext (`notizen`) wird in `renderLog()` via `escapeHtml()` ausgegeben.
 
 ### Diagnose-Tests
 

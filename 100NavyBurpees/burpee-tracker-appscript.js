@@ -14,6 +14,18 @@
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+
+    // Auth: Shared-Secret-Token gegen ScriptProperties pruefen.
+    // Setup: Projekteinstellungen -> Skripteigenschaften -> API_TOKEN anlegen.
+    // Fail-closed: ohne gueltiges Token wird nichts ausgefuehrt. Konstante Fehlerantwort,
+    // damit nicht durchsickert, ob Token fehlte oder falsch war.
+    const expected = PropertiesService.getScriptProperties().getProperty('API_TOKEN');
+    if (!expected || !safeEqual(data.token, expected)) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'error' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
     if (data.action === 'add') {
@@ -73,4 +85,14 @@ function doGet(e) {
   return ContentService
     .createTextOutput('Burpee Tracker Backend aktiv.')
     .setMimeType(ContentService.MimeType.TEXT);
+}
+
+// Laengen-sicherer, inhaltlich konstanter String-Vergleich (mindert Timing-Angriffe).
+function safeEqual(a, b) {
+  a = String(a == null ? '' : a);
+  b = String(b == null ? '' : b);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

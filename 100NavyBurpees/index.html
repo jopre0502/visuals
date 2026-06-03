@@ -282,6 +282,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
       <input type="text" id="cfg-script-url" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="settings-hint">Die Web-App-URL aus dem Apps Script Deployment</div>
     </div>
+    <div class="settings-group">
+      <label>API Token</label>
+      <input type="text" id="cfg-token" placeholder="geheimes Token">
+      <div class="settings-hint">Muss mit der Skripteigenschaft <code>API_TOKEN</code> im Apps Script übereinstimmen</div>
+    </div>
     <button class="ctrl-btn primary" onclick="saveConfig()">Speichern & Verbinden</button>
     <div class="settings-status" id="cfg-status">Noch nicht konfiguriert</div>
   </div>
@@ -330,7 +335,7 @@ function getRepSec(){
   return 12;
 }
 
-let sessions=[], config={sheetId:'',scriptUrl:''};
+let sessions=[], config={sheetId:'',scriptUrl:'',apiToken:''};
 
 // ===== GOOGLE SHEETS STORAGE =====
 function loadConfig(){
@@ -339,6 +344,7 @@ function loadConfig(){
     if(c)config=JSON.parse(c);
     document.getElementById('cfg-sheet-id').value=config.sheetId||'';
     document.getElementById('cfg-script-url').value=config.scriptUrl||'';
+    document.getElementById('cfg-token').value=config.apiToken||'';
   }catch(e){}
   updateStatus();
 }
@@ -346,6 +352,7 @@ function loadConfig(){
 function saveConfig(){
   config.sheetId=document.getElementById('cfg-sheet-id').value.trim();
   config.scriptUrl=document.getElementById('cfg-script-url').value.trim();
+  config.apiToken=document.getElementById('cfg-token').value.trim();
   localStorage.setItem('bt-config',JSON.stringify(config));
   updateStatus();
   if(config.sheetId)fetchFromSheet();
@@ -441,7 +448,7 @@ function parseCSVLine(line){
 async function postToSheet(data){
   if(!config.scriptUrl){showToast('Keine Script-URL konfiguriert','error');return false}
   try{
-    await fetch(config.scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)});
+    await fetch(config.scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...data,token:config.apiToken||''})});
     return true;
   }catch(e){showToast('Schreibfehler: '+e.message,'error');return false}
 }
@@ -565,7 +572,7 @@ function renderLog(){
     const tl=s.pace==='hit'?'Pace gehalten':s.pace==='miss'?'Pace teilweise':'Pace nicht gehalten';
     const ds=new Date(s.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
     const si=s.stage!==null?' · '+ALL_STAGES[s.stage].label:'';
-    return`<div class="session-card day-${s.day}"><button class="session-delete" onclick="deleteSession(${i})">&#x2715;</button><div class="session-date">${ds}${si}</div><div class="session-title">${DAY_NAMES[s.day]}</div><div class="session-detail">Sätze: ${s.sets.join(' / ')} · Gesamt: <span>${s.total}</span> · Max: <span>${s.maxSet}</span></div>${s.notes?`<div class="session-detail" style="color:var(--text3)">${s.notes}</div>`:''}<div class="session-tag ${tc}">${tl}</div></div>`
+    return`<div class="session-card day-${s.day}"><button class="session-delete" onclick="deleteSession(${i})">&#x2715;</button><div class="session-date">${ds}${si}</div><div class="session-title">${DAY_NAMES[s.day]}</div><div class="session-detail">Sätze: ${s.sets.join(' / ')} · Gesamt: <span>${s.total}</span> · Max: <span>${s.maxSet}</span></div>${s.notes?`<div class="session-detail" style="color:var(--text3)">${escapeHtml(s.notes)}</div>`:''}<div class="session-tag ${tc}">${tl}</div></div>`
   }).join('');
 }
 
@@ -635,6 +642,7 @@ function getWN(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDat
 
 // ===== TOAST =====
 function showToast(m,type){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(type==='error'?' error':'');setTimeout(()=>t.className='toast',2500)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 // ===== INIT =====
 function renderAll(){renderLog();renderPlan()}
