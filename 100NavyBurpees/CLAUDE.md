@@ -5,8 +5,8 @@
 HIIT-Timer und Trainings-Tracker für das Ziel "100 Navy SEAL Burpees am Stück @ 5 BPM".
 Gehostet als statische HTML-Seite auf GitHub Pages, Backend via Google Sheets.
 
-**Repo:** `github.com/jopre0502/100NavyBurpees`
-**Live:** `https://jopre0502.github.io/100NavyBurpees/`
+**Repo:** `github.com/jopre0502/visuals` (Monorepo — dieses Projekt liegt im Unterordner `100NavyBurpees/`)
+**Live:** `https://jopre0502.github.io/visuals/100NavyBurpees/`
 
 ## Architektur
 
