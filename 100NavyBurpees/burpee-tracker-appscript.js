@@ -17,16 +17,19 @@ function doPost(e) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
     if (data.action === 'add') {
+      // Formula-Injection-Schutz: Strings mit fuehrendem =,+,-,@,Tab,CR mit ' als Text markieren,
+      // damit Google Sheets sie nicht als Formel auswertet. Zahlen strikt ueber parseInt.
+      const safe = s => (typeof s === 'string' && /^[=+\-@\t\r]/.test(s)) ? "'" + s : s;
       sheet.appendRow([
-        data.datum,
-        data.tag,
-        data.typ,
-        data.saetze,
-        parseInt(data.gesamt),
-        parseInt(data.maxset),
-        data.pace,
-        data.stufe || '',
-        data.notizen || ''
+        safe(data.datum),
+        safe(data.tag),
+        safe(data.typ),
+        safe(data.saetze),
+        parseInt(data.gesamt) || 0,
+        parseInt(data.maxset) || 0,
+        safe(data.pace),
+        safe(data.stufe || ''),
+        safe(data.notizen || '')
       ]);
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', rows: sheet.getLastRow() - 1 }))
