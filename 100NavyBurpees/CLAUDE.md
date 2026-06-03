@@ -156,6 +156,7 @@ Im Plan-View werden automatisch Empfehlungen generiert:
 
 - [x] Google Sheet anlegen und verbinden (erledigt 2026-06-03)
 - [x] Auf GitHub Pages deployen und testen (erledigt 2026-06-03)
+- [ ] **Ausstehend (nur Deploy):** Apps Script mit Token-Auth aktiv schalten — `API_TOKEN` in GAS-Skripteigenschaften + im Tracker (Setup → API Token) eintragen, neu bereitstellen, dann Eintragen **und** Löschen testen. Code ist committed (`7e9eb62`), nur Backend-Redeploy + Token-Setup stehen aus.
 - [ ] PWA-Manifest + Service Worker für Offline-Fähigkeit (Timer muss ohne Netz funktionieren)
 - [ ] Vibration API als Alternative/Ergänzung zu Audio-Beeps (Handy in der Tasche beim Training)
 - [ ] Max-Attempt-Modus: Spezieller Timer für Testläufe (alle 3-4 Wochen nach Deload)
