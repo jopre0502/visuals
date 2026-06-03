@@ -362,6 +362,16 @@ function updateStatus(){
   const dot=document.getElementById('s-dot'),txt=document.getElementById('s-text');
   if(!config.sheetId){dot.className='status-dot none';txt.textContent='Nicht konfiguriert — Setup öffnen'}
   else{dot.className='status-dot ok';txt.textContent='Sheet verbunden'}
+  // Setup-Seiten-Status (cfg-status) war statisch und wurde nie aktualisiert — hier anbinden.
+  const cs=document.getElementById('cfg-status');
+  if(cs){
+    const miss=[];
+    if(!config.sheetId)miss.push('Sheet-ID');
+    if(!config.scriptUrl)miss.push('Script-URL');
+    if(!config.apiToken)miss.push('API Token');
+    if(miss.length){cs.textContent='Fehlt noch: '+miss.join(', ');cs.style.color='var(--warn)'}
+    else{cs.textContent='Konfiguriert ✓';cs.style.color='var(--green)'}
+  }
 }
 
 function sheetCsvUrl(){
