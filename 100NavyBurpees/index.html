@@ -363,6 +363,7 @@ function getRepSec(){
 }
 
 let sessions=[], config={sheetId:'',scriptUrl:'',apiToken:''};
+let planInitial={2:[],3:[]}, planAdapted={2:[],3:[]};  // aus Sheet-Tab 'Plan' (TASK-009)
 
 // ===== GOOGLE SHEETS STORAGE =====
 function loadConfig(){
@@ -411,11 +412,67 @@ async function fetchSessions(){
   return parseCsv(await resp.text());
 }
 
+// ===== PLAN (zwei Pläne im Sheet-Tab 'Plan', TASK-009) =====
+// App liest NUR (gviz CSV). planInitial = quelle=initial (eingefroren); planAdapted = je
+// (Tag,Stufe) die jüngste Zeile (GueltigAb). Bei Lesefehler bleiben die hardcodierten
+// STAGES als Offline-Fallback (identisch zu PLAN_INITIAL). Schreiben macht nur der Agent.
+function planCsvUrl(){
+  return`https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq?tqx=out:csv&sheet=Plan`;
+}
+async function loadPlan(){
+  try{
+    const resp=await fetch(planCsvUrl());
+    if(!resp.ok)return false;
+    const rows=parsePlanCsv(await resp.text());
+    if(!rows.length)return false;
+    buildPlans(rows);applyPlan();return true;
+  }catch(e){return false}                          // Fallback: hardcodierte STAGES bleiben
+}
+function parsePlanCsv(csv){
+  const lines=csv.split('\n').filter(l=>l.trim());
+  if(lines.length<2)return[];
+  const clean=c=>c?c.replace(/"/g,'').trim():'';
+  const out=[];
+  for(let i=1;i<lines.length;i++){
+    const c=parseCSVLine(lines[i]);
+    if(c.length<7)continue;
+    out.push({
+      quelle:clean(c[0]),tag:parseInt(clean(c[1])),stufe:clean(c[2]),
+      reps:parseInt(clean(c[3])),runden:parseInt(clean(c[4])),
+      pause:parseInt(clean(c[5])),sekProRep:parseFloat(clean(c[6])),
+      gueltigAb:clean(c[7]),notiz:clean(c[8]||'')
+    });
+  }
+  return out;
+}
+function buildPlans(rows){
+  const init={2:[],3:[]},latest={};
+  rows.forEach(r=>{
+    if(r.tag!==2&&r.tag!==3)return;
+    if(r.quelle==='initial')init[r.tag].push(r);
+    const k=r.tag+'|'+r.stufe;                     // jüngste Version je Stufe gewinnt
+    if(!latest[k]||(r.gueltigAb||'')>=(latest[k].gueltigAb||''))latest[k]=r;
+  });
+  const adapt={2:[],3:[]};                          // folgt der initial-Reihenfolge (Progression)
+  [2,3].forEach(t=>init[t].forEach(ir=>adapt[t].push(latest[t+'|'+ir.stufe]||ir)));
+  planInitial=init;planAdapted=adapt;
+}
+// STAGES/STAGES_OP in-place auf planAdapted setzen -> renderPlan, getConfig, parseCsv,
+// manualLog nutzen automatisch die Sheet-Werte (const-Array-Mutation, keine Neuzuweisung).
+function applyPlan(){
+  const s2=planAdapted[2].map((r,i)=>({id:i,label:r.stufe,work_min:r.reps*r.sekProRep/60,work_reps:r.reps,rest_sec:r.pause,rounds:r.runden,total:r.reps*r.runden}));
+  const s3=planAdapted[3].map((r,i)=>({id:i,label:r.stufe,reps:r.reps,sec_per_rep:r.sekProRep,rounds:r.runden,rest_sec:r.pause,total:r.reps*r.runden}));
+  if(s2.length){STAGES.length=0;STAGES.push(...s2)}
+  if(s3.length){STAGES_OP.length=0;STAGES_OP.push(...s3)}
+  ALL_STAGES.length=0;ALL_STAGES.push(...STAGES,...STAGES_OP);
+}
+
 async function fetchFromSheet(){
   if(!config.sheetId){showToast('Keine Sheet-ID konfiguriert','error');return}
   const dot=document.getElementById('s-dot'),txt=document.getElementById('s-text');
   try{
     txt.innerHTML='<span class="spinner"></span>Lade Daten...';
+    await loadPlan();                          // Plan zuerst: setzt STAGES, bevor parseCsv stage auflöst
     sessions=await fetchSessions();
     dot.className='status-dot ok';
     txt.textContent=`Sheet verbunden — ${sessions.length} Sessions`;

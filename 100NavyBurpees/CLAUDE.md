@@ -56,7 +56,7 @@ Font-Hierarchie: Bebas Neue (Headlines, Zahlen), IBM Plex Mono (Labels, Daten), 
 - Arbeitsblöcke bei exakt 5 RPM mit definierten Pausen
 - Timer: Automatisch (zählt Reps bis Target, dann Pause, dann nächste Runde)
 - Ring-Countdown: 12 Sekunden
-- 6 Progressionsstufen (STAGES Array)
+- 8 Progressionsstufen (STAGES Array, v2 datenbasiert kalibriert)
 
 **Tag 3 — Speed Endurance / Überpace (6-7 RPM / 8-10s pro Rep)**
 - Kurze Sätze bei supramaximaler Pace
@@ -64,6 +64,11 @@ Font-Hierarchie: Bebas Neue (Headlines, Zahlen), IBM Plex Mono (Labels, Daten), 
 - Ring-Countdown: 8-10 Sekunden (dynamisch je nach Stufe)
 - 5 Progressionsstufen (STAGES_OP Array)
 - Wissenschaftliche Basis: Bangsbo Speed Endurance Training (SET)
+
+**Plan-Quelle (TASK-009):** Stufen-Definitionen kommen aus dem GSheet-Tab `Plan` — zwei Pläne:
+`quelle=initial` (eingefroren, theoretisch) + `coach`/`manuell` (adaptiv, jüngste je Stufe gewinnt).
+App liest via gviz `&sheet=Plan` und mutiert `STAGES`/`STAGES_OP` in-place; Fallback = hardcodierte
+Stufen (offline-sicher). Schreiben nur via Apps-Script `setPlan` (token, fail-closed).
 
 ### Datenmodell
 
@@ -79,7 +84,7 @@ Font-Hierarchie: Bebas Neue (Headlines, Zahlen), IBM Plex Mono (Labels, Daten), 
   paceBpm: 5,                // roh — erreichte RPM (oder null)
   pace: "hit"|"miss"|"fail"|null, // ABGELEITET aus paceBpm vs. Zielpace des Typs
   pausen: "120;120;120",     // roh — Pausenzeiten (oder "")
-  stage: null|0-10,          // ABGELEITET aus Stufe-Label (typ-bewusst: 0-5 STAGES, 6-10 STAGES_OP)
+  stage: null|0-12,          // ABGELEITET aus Stufe-Label (typ-bewusst: 0-7 STAGES, 8-12 STAGES_OP)
   notes: "Freitext"          // roh
 }
 ```

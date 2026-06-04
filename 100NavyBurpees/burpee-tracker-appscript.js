@@ -9,8 +9,10 @@
 // Setup:
 //   1. Google Sheet anlegen
 //   2. Einmalig setupSheet() im Editor ausfuehren (Run) -> Header + Seed-Import
+//   2b. Einmalig setupPlanSheet() ausfuehren -> Tab 'Plan' mit PLAN_INITIAL (Stufen v2)
 //   3. Deploy -> Neue Bereitstellung -> Web-App (Ausfuehren als: Ich, Zugriff: Jeder)
 //   4. Skripteigenschaft API_TOKEN setzen, /exec-URL + Token im Tracker eintragen
+//   Verifikation: <exec>?action=debug (Sessions) und <exec>?action=planDebug (Plan)
 // =====================================================
 
 function doPost(e) {
@@ -68,6 +70,23 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (data.action === 'setPlan') {
+      // Plan-Anpassung: haengt eine neue Zeile an Tab 'Plan' an (quelle=coach/manuell).
+      // initial-Zeilen werden nie ueberschrieben; die App nimmt je (Tag,Stufe) die juengste
+      // ueber GueltigAb. Volle Historie bleibt erhalten.
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      let plan = ss.getSheetByName('Plan');
+      if (!plan) { plan = ss.insertSheet('Plan'); plan.appendRow(PLAN_HEADER); }
+      plan.appendRow([
+        markText(data.quelle || 'coach'),
+        data.tag, markText(data.stufe), data.reps, data.runden,
+        data.pause, data.sekProRep, markText(data.gueltigAb || ''), markText(data.notiz || '')
+      ]);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', rows: plan.getLastRow() - 1 }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', msg: 'Unknown action' }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -81,6 +100,28 @@ function doPost(e) {
 
 function doGet(e) {
   const p = (e && e.parameter) ? e.parameter : {};
+
+  // Plan-Diagnose: zeigt den Tab 'Plan' roh (Verifikation nach setupPlanSheet/setPlan).
+  //   <exec>?action=planDebug
+  if (p.action === 'planDebug') {
+    const plan = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Plan');
+    if (!plan) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ version: 'v5', plan: 'KEIN Tab Plan — setupPlanSheet() ausfuehren' }, null, 2))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    const pr = plan.getDataRange().getValues();
+    const zeilen = [];
+    for (let i = 1; i < pr.length; i++) {
+      zeilen.push({
+        quelle: pr[i][0], tag: pr[i][1], stufe: pr[i][2], reps: pr[i][3],
+        runden: pr[i][4], pause: pr[i][5], sekProRep: pr[i][6], gueltigAb: pr[i][7], notiz: pr[i][8]
+      });
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ version: 'v5', planZeilen: zeilen.length, plan: zeilen }, null, 2))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
   // --- Diagnose (im Browser direkt lesbar). Read-only, nur ohnehin public Sheet-Daten. ---
   if (p.action === 'debug' || p.action === 'dryrun') {
@@ -149,6 +190,45 @@ function setupSheet() {
     ['2026-06-03', 'Speed Endurance', '5;5;5;5;5;5;5;5', '6', '120;120;120;120;120;120;120', 'Stufe 1', 'kein Problem, gut durchgehalten auch auf Stufe 1. Kein Rauschen']
   ];
   sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
+}
+
+// Spalten des Plan-Tabs. Quelle (initial/coach/manuell) trennt theoretischen und
+// adaptierten Plan; GueltigAb macht Anpassungen zeitlich nachvollziehbar.
+const PLAN_HEADER = ['Quelle', 'Tag', 'Stufe', 'Reps', 'Runden', 'Pause', 'SekProRep', 'GueltigAb', 'Notiz'];
+
+// EINMALIG im Editor ausfuehren: legt Tab 'Plan' an (oder leert ihn) und seedt
+// PLAN_INITIAL = die kalibrierten v2-Stufen (Tag 2 + Tag 3). Diese initial-Zeilen sind
+// der eingefrorene theoretische Plan; spaetere Anpassungen kommen via setPlan dazu.
+function setupPlanSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let plan = ss.getSheetByName('Plan');
+  if (!plan) plan = ss.insertSheet('Plan');
+  plan.clear();
+  const d = '2026-06-04';
+  const rows = [
+    PLAN_HEADER,
+    // Tag 2 — Intervalle @ 5 RPM (12s/Rep), v2 kalibriert
+    ['initial', 2, 'Start',   10, 5, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 1', 12, 5, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 2', 14, 4, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 3', 16, 4, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 4', 18, 4, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 5', 20, 4, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 6', 25, 3, 120, 12,  d, ''],
+    ['initial', 2, 'Stufe 7', 30, 3,  90, 12,  d, ''],
+    // Tag 3 — Speed Endurance / Ueberpace
+    ['initial', 3, 'OP Start',   5, 6, 120, 10,  d, ''],
+    ['initial', 3, 'OP Stufe 1', 5, 8, 120, 10,  d, ''],
+    ['initial', 3, 'OP Stufe 2', 5, 6,  90,  9,  d, ''],
+    ['initial', 3, 'OP Stufe 3', 5, 6,  90,  8.5, d, ''],
+    ['initial', 3, 'OP Stufe 4', 8, 6,  90, 10,  d, '']
+  ];
+  plan.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
+}
+
+// Formula-Injection-Schutz: fuehrende =,+,-,@,Tab,CR mit ' als Text markieren.
+function markText(s) {
+  return (typeof s === 'string' && /^[=+\-@\t\r]/.test(s)) ? "'" + s : s;
 }
 
 // Normalisiert Datumszelle ODER Eingabe-String einheitlich auf "yyyy-MM-dd".
