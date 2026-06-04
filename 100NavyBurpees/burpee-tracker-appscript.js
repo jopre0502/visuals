@@ -146,7 +146,7 @@ function setupSheet() {
     ['2026-05-27', 'Speed Endurance', '5;5;5;5;5;5', '6', '120;120;120;120;120', 'Start', 'kein Problem, gut durchgehalten'],
     ['2026-05-29', 'Max Set', '22;11;10;8;6', '5', '150;90;90;90', '', 'längere Pausen bei Sätzen 2-5, 150s statt 90s; 60% = 13 reps/Satz nicht haltbar. Tagsüber Rauschen im Ohr'],
     ['2026-05-31', 'Intervalle', '11;11;7', '5', '120;120;120;120', 'Start', 'Nicht gut gefühlt. Brust. im dritten Satz abgebrochen. Wieder Rauschen im Ohr'],
-    ['2026-06-03', 'Speed Endurance', '5;5;5;5;5;5;5;5', '', '120;120;120;120;120;120;120', 'Stufe 1', 'kein Problem, gut durchgehalten auch auf Stufe 1. Kein Rauschen']
+    ['2026-06-03', 'Speed Endurance', '5;5;5;5;5;5;5;5', '6', '120;120;120;120;120;120;120', 'Stufe 1', 'kein Problem, gut durchgehalten auch auf Stufe 1. Kein Rauschen']
   ];
   sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
 }
