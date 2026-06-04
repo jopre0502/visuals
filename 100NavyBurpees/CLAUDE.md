@@ -2,7 +2,7 @@
 
 ## Projekt
 
-HIIT-Timer und Trainings-Tracker für das Ziel "100 Navy SEAL Burpees am Stück @ 5 BPM".
+HIIT-Timer und Trainings-Tracker für das Ziel "100 Navy SEAL Burpees am Stück @ 5 RPM".
 Gehostet als statische HTML-Seite auf GitHub Pages, Backend via Google Sheets.
 
 **Repo:** `github.com/jopre0502/visuals` (Monorepo — dieses Projekt liegt im Unterordner `100NavyBurpees/`)
@@ -46,19 +46,19 @@ Font-Hierarchie: Bebas Neue (Headlines, Zahlen), IBM Plex Mono (Labels, Daten), 
 
 ### Drei Trainingstage pro Woche
 
-**Tag 1 — Max Set @ Zielpace (5 BPM / 12s pro Rep)**
-- Satz 1 All-out bei exakt 5 BPM, dann 4 Folgesätze bei 60-70%
-- Abbruch bei technischem Versagen ODER Pace-Abfall unter 5 BPM
+**Tag 1 — Max Set @ Zielpace (5 RPM / 12s pro Rep)**
+- Satz 1 All-out bei exakt 5 RPM, dann 4 Folgesätze bei 60-70%
+- Abbruch bei technischem Versagen ODER Pace-Abfall unter 5 RPM
 - Timer: Open-ended (zählt hoch), User beendet Satz manuell via "Satz Ende" (Taste E)
 - Ring-Countdown: 12 Sekunden
 
-**Tag 2 — Intervalle @ Zielpace (5 BPM / 12s pro Rep)**
-- Arbeitsblöcke bei exakt 5 BPM mit definierten Pausen
+**Tag 2 — Intervalle @ Zielpace (5 RPM / 12s pro Rep)**
+- Arbeitsblöcke bei exakt 5 RPM mit definierten Pausen
 - Timer: Automatisch (zählt Reps bis Target, dann Pause, dann nächste Runde)
 - Ring-Countdown: 12 Sekunden
 - 6 Progressionsstufen (STAGES Array)
 
-**Tag 3 — Speed Endurance / Überpace (6-7 BPM / 8-10s pro Rep)**
+**Tag 3 — Speed Endurance / Überpace (6-7 RPM / 8-10s pro Rep)**
 - Kurze Sätze bei supramaximaler Pace
 - Timer: Automatisch (wie Tag 2, aber mit kürzerer Rep-Zeit)
 - Ring-Countdown: 8-10 Sekunden (dynamisch je nach Stufe)
@@ -76,7 +76,7 @@ Font-Hierarchie: Bebas Neue (Headlines, Zahlen), IBM Plex Mono (Labels, Daten), 
   sets: [15, 10, 10, 9],     // roh (Semikolon-getrennt im Sheet)
   total: 44,                 // ABGELEITET = sum(sets)
   maxSet: 15,                // ABGELEITET = max(sets)
-  paceBpm: 5,                // roh — erreichte BPM (oder null)
+  paceBpm: 5,                // roh — erreichte RPM (oder null)
   pace: "hit"|"miss"|"fail"|null, // ABGELEITET aus paceBpm vs. Zielpace des Typs
   pausen: "120;120;120",     // roh — Pausenzeiten (oder "")
   stage: null|0-10,          // ABGELEITET aus Stufe-Label (typ-bewusst: 0-5 STAGES, 6-10 STAGES_OP)
@@ -92,7 +92,7 @@ Datum | Typ | Saetze | Pace | Pausen | Stufe | Notizen
 
 **Prinzip: nur Rohdaten speichern.** Gesamt, MaxSet, Session-Nr und Pace-Bewertung werden
 NICHT gespeichert, sondern im Frontend abgeleitet (Single Source of Truth = Saetze). Das
-beendet die Divergenz-Bugklasse (gespeicherter Wert ≠ Saetze). `Pace` = erreichte BPM (Zahl).
+beendet die Divergenz-Bugklasse (gespeicherter Wert ≠ Saetze). `Pace` = erreichte RPM (Zahl).
 Saetze & Pausen Semikolon-getrennt ("15;10;10;9"). Frisch-Setup/Import via `setupSheet()` im
 Apps Script (leert das Sheet, schreibt Header + Seed-Daten). Das numerische `Tag` entfällt —
 `Typ`-Text ist die Kategorie, `day` (1/2/3) wird intern via `typToDay` gemappt.
@@ -172,7 +172,7 @@ Im Plan-View werden automatisch Empfehlungen generiert:
 - [x] Löschen gefixt — `normDate` (Datum: Date/ISO/Altlast-`toString` → `yyyy-MM-dd`) + Match auf `Datum + Typ + abgeleitetes Gesamt`; Altzeilen mit leerem Gesamt / Komma-Saetzen lösbar (erledigt 2026-06-04, `83a8d60`)
 - [x] Schema-Redesign v5: nur Rohdaten (`Datum | Typ | Saetze | Pace | Pausen | Stufe | Notizen`), Gesamt/MaxSet/Pace-Bewertung im Frontend abgeleitet; Code committed + gepusht (`83a8d60`)
 - [ ] **Ausstehend (nur Deploy, User-Seite):** Apps Script **v5** in GAS einfügen → `setupSheet()` einmal ausführen (leert Sheet, importiert 6 echte Sessions) → **Neue Version** bereitstellen → `?action=debug` muss `version: v5` zeigen
-- [ ] Session 6 (2026-06-03, Speed Endurance) Pace-BPM nachtragen (aktuell leer → „Pace n/a")
+- [ ] Session 6 (2026-06-03, Speed Endurance) Pace-RPM nachtragen (aktuell leer → „Pace n/a")
 - [ ] Falls Mojibake in Notizen erneut auftaucht: `TextDecoder('utf-8')` in `fetchSessions` (reiner Anzeige-Fix; Alt-Bytes waren bereits korrupt gespeichert, `setupSheet` schreibt sauber)
 - [ ] PWA-Manifest + Service Worker für Offline-Fähigkeit (Timer muss ohne Netz funktionieren)
 - [ ] Vibration API als Alternative/Ergänzung zu Audio-Beeps (Handy in der Tasche beim Training)

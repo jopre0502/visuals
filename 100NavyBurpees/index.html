@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Burpee Tracker v2 — 100 @ 5 BPM</title>
+<title>Burpee Tracker v2 — 100 @ 5 RPM</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0a;--bg-card:#111;--bg-card-alt:#161616;--border:#222;--border-hi:#333;--text:#e8e8e8;--text2:#888;--text3:#555;--accent:#c4ff00;--accent-dim:#6b8a00;--blue:#5ac8fa;--red:#ff3b30;--warn:#ffb800;--green:#34c759;--orange:#ff6b00}
@@ -191,11 +191,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
     <div id="stage-select-op" class="stage-row" style="display:none">
       <label>Stufe</label>
       <select id="sel-stage-op">
-        <option value="0">Start — 5x6 @ 6 BPM (10s) / 120s Pause</option>
-        <option value="1">Stufe 1 — 5x8 @ 6 BPM / 120s Pause</option>
-        <option value="2">Stufe 2 — 5x6 @ 6.5 BPM (9s) / 90s Pause</option>
-        <option value="3">Stufe 3 — 5x6 @ 7 BPM (8.5s) / 90s Pause</option>
-        <option value="4">Stufe 4 — 8x6 @ 6 BPM / 90s Pause</option>
+        <option value="0">Start — 5x6 @ 6 RPM (10s) / 120s Pause</option>
+        <option value="1">Stufe 1 — 5x8 @ 6 RPM / 120s Pause</option>
+        <option value="2">Stufe 2 — 5x6 @ 6.5 RPM (9s) / 90s Pause</option>
+        <option value="3">Stufe 3 — 5x6 @ 7 RPM (8.5s) / 90s Pause</option>
+        <option value="4">Stufe 4 — 8x6 @ 6 RPM / 90s Pause</option>
       </select>
     </div>
     <div id="config-manual" class="config-grid">
@@ -249,7 +249,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
     </div>
     <div class="form-row">
       <div class="form-group"><label>Reps (Sätze, , oder ; getrennt)</label><input type="text" id="ml-reps" placeholder="20, 12, 8, 6"></div>
-      <div class="form-group"><label>Pace (BPM)</label><input type="number" id="ml-pace" step="0.5" min="0" placeholder="5"></div>
+      <div class="form-group"><label>Pace (RPM)</label><input type="number" id="ml-pace" step="0.5" min="0" placeholder="5"></div>
     </div>
     <div class="form-row full">
       <div class="form-group"><label>Pausen (Sek., , oder ; getrennt — optional)</label><input type="text" id="ml-pausen" placeholder="120, 120, 120"></div>
@@ -266,7 +266,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 <div id="v-plan" class="view">
   <div class="plan-section"><div class="plan-label">Intervall-Progression</div><div class="plan-title">Tag 2 — Stufen</div><div id="stage-list"></div></div>
   <div class="plan-section"><div class="plan-label">Speed Endurance Progression</div><div class="plan-title">Tag 3 — Überpace Stufen</div><div id="stage-list-op"></div></div>
-  <div class="plan-section"><div class="plan-label">Meilensteine</div><div class="plan-title">Max Set @ 5 BPM</div><div class="milestone-track" id="ms-track"></div></div>
+  <div class="plan-section"><div class="plan-label">Meilensteine</div><div class="plan-title">Max Set @ 5 RPM</div><div class="milestone-track" id="ms-track"></div></div>
   <div class="plan-section" id="adaptive-section" style="display:none"><div class="adaptive-box"><div class="adaptive-title">Adaptive Empfehlung</div><div class="adaptive-text" id="adaptive-text"></div></div></div>
   <div class="plan-section"><div class="plan-label">Wochen-Volumen</div><div id="vol-chart"></div></div>
 </div>
@@ -315,13 +315,19 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 <script>
 // ===== CONFIG =====
 const CIRC=2*Math.PI*100;
+// v2 (2026-06-04): Tag-2-Progression datenbasiert entschärft (6 Sessions, KW21-23).
+// Block-Größe wächst nun <=25%/Stufe (alt: 10->20 = +100%, 25->40 = +60%). Pause bleibt
+// lange großzügig (120s), erst Stufe 7 verkürzt. "Start" bleibt 5x10 -> Alt-Sessions
+// matchen per Label weiter. work_min = work_reps*12s/60 (abgeleitete Blockdauer).
 const STAGES=[
   {id:0,label:'Start',work_min:2,work_reps:10,rest_sec:120,rounds:5,total:50},
-  {id:1,label:'Stufe 1',work_min:4,work_reps:20,rest_sec:120,rounds:4,total:80},
-  {id:2,label:'Stufe 2',work_min:5,work_reps:25,rest_sec:90,rounds:4,total:100},
-  {id:3,label:'Stufe 3',work_min:8,work_reps:40,rest_sec:90,rounds:3,total:120},
-  {id:4,label:'Stufe 4',work_min:10,work_reps:50,rest_sec:60,rounds:2,total:100},
-  {id:5,label:'Stufe 5',work_min:15,work_reps:75,rest_sec:60,rounds:2,total:150}
+  {id:1,label:'Stufe 1',work_min:2.4,work_reps:12,rest_sec:120,rounds:5,total:60},
+  {id:2,label:'Stufe 2',work_min:2.8,work_reps:14,rest_sec:120,rounds:4,total:56},
+  {id:3,label:'Stufe 3',work_min:3.2,work_reps:16,rest_sec:120,rounds:4,total:64},
+  {id:4,label:'Stufe 4',work_min:3.6,work_reps:18,rest_sec:120,rounds:4,total:72},
+  {id:5,label:'Stufe 5',work_min:4,work_reps:20,rest_sec:120,rounds:4,total:80},
+  {id:6,label:'Stufe 6',work_min:5,work_reps:25,rest_sec:120,rounds:3,total:75},
+  {id:7,label:'Stufe 7',work_min:6,work_reps:30,rest_sec:90,rounds:3,total:90}
 ];
 const STAGES_OP=[
   {id:0,label:'OP Start',reps:5,sec_per_rep:10,rounds:6,rest_sec:120,total:30},
@@ -332,9 +338,9 @@ const STAGES_OP=[
 ];
 const ALL_STAGES=[...STAGES,...STAGES_OP];
 const MILESTONES=[30,50,75,100];
-const DAY_NAMES=['','Max Set @ 5 BPM','Intervalle @ 5 BPM','Überpace @ 6-7 BPM'];
+const DAY_NAMES=['','Max Set @ 5 RPM','Intervalle @ 5 RPM','Überpace @ 6-7 RPM'];
 const TYP_NAMES=['','Max Set','Intervalle','Speed Endurance']; // gespeicherter Typ-Text je day
-const PACE_TARGET=[0,5,5,6];                                   // Ziel-BPM je day (Speed: 6-7)
+const PACE_TARGET=[0,5,5,6];                                   // Ziel-RPM je day (Speed: 6-7)
 function dayToTyp(d){return TYP_NAMES[d]||''}
 function typToDay(t){
   const i=TYP_NAMES.indexOf(String(t||'').trim());if(i>0)return i;
@@ -343,7 +349,7 @@ function typToDay(t){
   if(s.includes('speed')||s.includes('über')||s.includes('ueber')||s.includes('op'))return 3;
   return 1;
 }
-// Pace-Bewertung aus erreichter BPM gegen die Zielpace des Typs ableiten (statt gespeichert).
+// Pace-Bewertung aus erreichter RPM gegen die Zielpace des Typs ableiten (statt gespeichert).
 function derivePace(bpm,day){
   if(bpm==null||isNaN(bpm))return null;
   const t=PACE_TARGET[day]||5;
@@ -611,7 +617,7 @@ function renderLog(){
   list.innerHTML=sessions.map((s,i)=>{
     const tc=s.pace==='hit'?'hit':s.pace==='miss'?'miss':s.pace==='fail'?'fail':'';
     const tl=s.pace==='hit'?'Pace gehalten':s.pace==='miss'?'Pace teilweise':s.pace==='fail'?'Pace nicht gehalten':'Pace n/a';
-    const bpm=s.paceBpm!=null?` · ${s.paceBpm} BPM`:'';
+    const bpm=s.paceBpm!=null?` · ${s.paceBpm} RPM`:'';
     const ds=new Date(s.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
     const si=s.stage!==null?' · '+ALL_STAGES[s.stage].label:'';
     return`<div class="session-card day-${s.day}"><button class="session-delete" onclick="deleteSession(${i})">&#x2715;</button><div class="session-date">${ds}${si}</div><div class="session-title">${DAY_NAMES[s.day]}</div><div class="session-detail">Sätze: ${s.sets.join(' / ')} · Gesamt: <span>${s.total}</span> · Max: <span>${s.maxSet}</span></div>${s.notes?`<div class="session-detail" style="color:var(--text3)">${escapeHtml(s.notes)}</div>`:''}<div class="session-tag ${tc}">${tl}${bpm}</div></div>`
@@ -636,7 +642,7 @@ function renderPlan(){
   let cs=0;if(t2.length>0&&t2[0].stage!==null)cs=t2[0].stage;
   document.getElementById('stage-list').innerHTML=STAGES.map(st=>{
     let c='';if(st.id<cs)c='done';if(st.id===cs)c='current';
-    return`<div class="stage-card ${c}"><div class="stage-id">${st.label}</div><div class="stage-info">${st.work_min} Min / ${st.work_reps} Reps · ${st.rest_sec}s Pause · ${st.rounds} Runden</div><div class="stage-total">${st.total}</div></div>`
+    return`<div class="stage-card ${c}"><div class="stage-id">${st.label}</div><div class="stage-info">${st.work_reps} Reps × ${st.rounds} · 12s/Rep (5 RPM) · ${st.rest_sec}s Pause</div><div class="stage-total">${st.total}</div></div>`
   }).join('');
   // Überpace stages
   const t3=sessions.filter(s=>s.day===3).sort((a,b)=>b.date.localeCompare(a.date));
@@ -644,11 +650,11 @@ function renderPlan(){
   document.getElementById('stage-list-op').innerHTML=STAGES_OP.map(st=>{
     let c='';if(st.id<csOp)c='done';if(st.id===csOp)c='current';
     const bpm=Math.round(60/st.sec_per_rep*10)/10;
-    return`<div class="stage-card ${c}" style="border-left:3px solid var(--orange)"><div class="stage-id">${st.label}</div><div class="stage-info">${st.reps} Reps × ${st.rounds} · ${st.sec_per_rep}s/Rep (${bpm} BPM) · ${st.rest_sec}s Pause</div><div class="stage-total" style="color:var(--orange)">${st.total}</div></div>`
+    return`<div class="stage-card ${c}" style="border-left:3px solid var(--orange)"><div class="stage-id">${st.label}</div><div class="stage-info">${st.reps} Reps × ${st.rounds} · ${st.sec_per_rep}s/Rep (${bpm} RPM) · ${st.rest_sec}s Pause</div><div class="stage-total" style="color:var(--orange)">${st.total}</div></div>`
   }).join('');
   const mx=sessions.filter(s=>s.day===1).map(s=>s.maxSet),best=mx.length?Math.max(...mx):0;
   document.getElementById('ms-track').innerHTML=MILESTONES.map(ms=>{
-    const r=best>=ms;return`<div class="ms-item"><div class="ms-num ${r?'reached':''}">${ms}</div><div class="ms-bar ${r?'reached':''}"></div><div class="ms-label">${ms===100?'Ziel':'@ 5 BPM'}</div></div>`
+    const r=best>=ms;return`<div class="ms-item"><div class="ms-num ${r?'reached':''}">${ms}</div><div class="ms-bar ${r?'reached':''}"></div><div class="ms-label">${ms===100?'Ziel':'@ 5 RPM'}</div></div>`
   }).join('');
   checkAdaptive(t2,mx,cs);renderVolChart();
 }
