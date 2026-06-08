@@ -127,6 +127,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 .ms-bar{height:3px;background:var(--border);margin:0.5rem auto;width:80%}
 .ms-bar.reached{background:var(--accent)}
 .ms-label{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--text3)}
+/* Dashboard / Stats (TASK-010) — Vanilla SVG + conic-gradient, zero-dependency */
+.chart-legend{display:flex;flex-wrap:wrap;gap:0.5rem 1.1rem;margin-top:0.75rem;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text2)}
+.legend-item{display:flex;align-items:center;gap:0.4rem}
+.legend-swatch{width:14px;height:4px;border-radius:2px;flex:none}
+.legend-swatch.dash{height:0;width:16px;border-top:2px dashed var(--text2);background:none}
+.svg-chart{width:100%;height:auto;display:block;overflow:visible;font-family:'IBM Plex Mono',monospace}
+.svg-chart text{fill:var(--text3);font-size:9px}
+.bar-stack{display:flex;flex-direction:column-reverse}
+.donut-wrap{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;padding:1rem;background:var(--bg-card);border:1px solid var(--border)}
+.donut{width:120px;height:120px;border-radius:50%;flex:none;position:relative}
+.donut::after{content:'';position:absolute;inset:24px;border-radius:50%;background:var(--bg-card)}
+.donut-legend{flex:1;min-width:130px}
+.donut-row{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;padding:0.35rem 0;border-bottom:1px solid var(--border)}
+.donut-row:last-child{border-bottom:none}
+.donut-row .lbl{display:flex;align-items:center;gap:0.5rem;color:var(--text2)}
+.donut-row .dot{width:10px;height:10px;border-radius:50%;flex:none}
 
 /* SETTINGS */
 .settings-section{margin-bottom:2rem}
@@ -161,6 +177,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <button class="nav-btn active" data-view="timer">Timer</button>
   <button class="nav-btn" data-view="log">Log</button>
   <button class="nav-btn" data-view="plan">Plan</button>
+  <button class="nav-btn" data-view="stats">Stats</button>
   <button class="nav-btn" data-view="settings">Setup</button>
 </nav>
 
@@ -269,6 +286,14 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <div class="plan-section"><div class="plan-label">Meilensteine</div><div class="plan-title">Max Set @ 5 RPM</div><div class="milestone-track" id="ms-track"></div></div>
   <div class="plan-section" id="adaptive-section" style="display:none"><div class="adaptive-box"><div class="adaptive-title">Adaptive Empfehlung</div><div class="adaptive-text" id="adaptive-text"></div></div></div>
   <div class="plan-section"><div class="plan-label">Wochen-Volumen</div><div id="vol-chart"></div></div>
+</div>
+
+<!-- DASHBOARD / STATS (TASK-010) -->
+<div id="v-stats" class="view">
+  <div class="plan-section"><div class="plan-label">Volumen</div><div class="plan-title">Reps pro Woche</div><div id="dash-weekstack"></div></div>
+  <div class="plan-section"><div class="plan-label">Soll vs. Ist</div><div class="plan-title">Entwicklung über Plan</div><div id="dash-planprog"></div></div>
+  <div class="plan-section"><div class="plan-label">Tag 1</div><div class="plan-title">Max-Set-Verlauf</div><div id="dash-maxset"></div></div>
+  <div class="plan-section"><div class="plan-label">Pace</div><div class="plan-title">Trefferquote</div><div id="dash-pace"></div></div>
 </div>
 
 <!-- SETTINGS -->
@@ -569,7 +594,7 @@ function beepRest(){beep(440,0.2,0.2)}
 function beepDone(){beep(1400,0.1,0.4);setTimeout(()=>beep(1600,0.1,0.4),120);setTimeout(()=>beep(1800,0.15,0.4),240)}
 
 // ===== NAV =====
-document.querySelectorAll('.nav-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('v-'+b.dataset.view).classList.add('active');if(b.dataset.view==='log')renderLog();if(b.dataset.view==='plan')renderPlan()})});
+document.querySelectorAll('.nav-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('v-'+b.dataset.view).classList.add('active');if(b.dataset.view==='log')renderLog();if(b.dataset.view==='plan')renderPlan();if(b.dataset.view==='stats')renderStats()})});
 
 // ===== DAY SELECT =====
 let selectedDay=1;
@@ -745,12 +770,117 @@ function renderVolChart(){
 }
 function getWN(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);const w1=new Date(dt.getFullYear(),0,4);return 1+Math.round(((dt-w1)/864e5-3+(w1.getDay()+6)%7)/7)}
 
+// ===== DASHBOARD / STATS (TASK-010) =====
+function renderStats(){renderWeekStack();renderPlanProgress();renderMaxSetChart();renderPaceDonut()}
+
+// Wochenvolumen nach Trainingstag (1/2/3) — fuer gestapelte Balken. ISO-Montag als Wochenstart.
+function getWeeklyVolByDay(){
+  if(!sessions.length)return[];const w={};
+  sessions.forEach(s=>{
+    const ws=new Date(s.date);ws.setDate(ws.getDate()-((ws.getDay()+6)%7));
+    const k=ws.toISOString().slice(0,10);
+    if(!w[k])w[k]={week:k,d1:0,d2:0,d3:0,vol:0};
+    w[k]['d'+s.day]+=s.total;w[k].vol+=s.total;
+  });
+  return Object.values(w).sort((a,b)=>b.week.localeCompare(a.week));
+}
+
+// Soll-Volumen (reps*runden) einer Stufe aus dem gewuenschten Plan. which='initial'|'adapted'.
+// QG-2: initial NUR aus echtem planInitial (Sheet). adapted faellt offline auf den aktuellen
+// STAGES-Zustand zurueck (= adaptierter Stand). null wenn nicht ermittelbar.
+function stagePlanVolume(stageIdx,which){
+  if(stageIdx==null)return null;
+  const isOp=stageIdx>=STAGES.length;
+  const plan=which==='initial'?planInitial:planAdapted;
+  const row=((plan&&plan[isOp?3:2])||[])[isOp?stageIdx-STAGES.length:stageIdx];
+  if(row)return row.reps*row.runden;
+  if(which==='adapted'){const st=ALL_STAGES[stageIdx];return st?st.total:null}
+  return null;
+}
+
+// Trainings-Klassifikation: hat die Session ihr Stufen-Soll-Volumen erreicht?
+// Stellschraube (Trainings-Semantik): ab welchem Ist/Soll-Verhaeltnis gilt eine Session als
+// erfuellt / knapp / abgebrochen. Defaults: >=95% erreicht, >=80% knapp, sonst abgebrochen.
+function classifyVolume(ist,soll){
+  if(soll==null||!soll)return 'na';
+  const r=ist/soll;
+  if(r>=1.00)return 'hit';
+  if(r>=0.90)return 'short';
+  return 'fail';
+}
+
+function getMaxSetSeries(){
+  return sessions.filter(s=>s.day===1&&s.maxSet>0).map(s=>({date:s.date,val:s.maxSet})).sort((a,b)=>a.date.localeCompare(b.date));
+}
+function getPaceDist(){
+  const d={hit:0,miss:0,fail:0};
+  sessions.forEach(s=>{if((s.day===2||s.day===3)&&s.pace)d[s.pace]++});
+  return d;
+}
+
+// Chart 1 — Reps/Woche, gestapelt nach Trainingstag.
+function renderWeekStack(){
+  const c=document.getElementById('dash-weekstack'),wks=getWeeklyVolByDay().slice(0,8).reverse();
+  if(!wks.length){c.innerHTML='<div class="empty-state">Noch keine Daten</div>';return}
+  const mx=Math.max(...wks.map(w=>w.vol),1),COL={1:'var(--accent)',2:'var(--blue)',3:'var(--orange)'},NM={1:'Max',2:'Intervalle',3:'Speed'};
+  const bars=wks.map(w=>{
+    const seg=[1,2,3].filter(d=>w['d'+d]>0).map(d=>`<div title="Tag ${d} ${NM[d]}: ${w['d'+d]}" style="width:100%;height:${w['d'+d]/mx*120}px;background:${COL[d]};min-height:2px"></div>`).join('');
+    return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-size:0.6rem;color:var(--text2);font-family:'IBM Plex Mono',monospace">${w.vol}</span><div class="bar-stack" style="width:100%;border-radius:2px 2px 0 0;overflow:hidden">${seg}</div><span style="font-size:0.55rem;color:var(--text3);font-family:'IBM Plex Mono',monospace">KW${getWN(new Date(w.week))}</span></div>`;
+  }).join('');
+  c.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;min-height:140px;padding-bottom:0.75rem;border-bottom:1px solid var(--border)">${bars}</div>
+  <div class="chart-legend"><span class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>Tag 1 Max</span><span class="legend-item"><span class="legend-swatch" style="background:var(--blue)"></span>Tag 2 Intervalle</span><span class="legend-item"><span class="legend-swatch" style="background:var(--orange)"></span>Tag 3 Speed</span></div>`;
+}
+
+// Chart 2 — Soll-vs-Ist-Volumen je Tag-2/3-Session (SVG). Ist=Balken (nach Erreichung gefaerbt),
+// Soll initial=gestrichelt, Soll adaptiv=durchgezogen. Macht das Zwei-Plan-Modell (TASK-009) sichtbar.
+function renderPlanProgress(){
+  const c=document.getElementById('dash-planprog');
+  const data=sessions.filter(s=>(s.day===2||s.day===3)&&s.stage!=null).sort((a,b)=>a.date.localeCompare(b.date))
+    .map(s=>({date:s.date,ist:s.total,sollI:stagePlanVolume(s.stage,'initial'),sollA:stagePlanVolume(s.stage,'adapted')}));
+  if(!data.length){c.innerHTML='<div class="empty-state">Noch keine Stufen-Sessions (Tag 2/3)</div>';return}
+  const W=560,H=200,PL=30,PR=10,PT=14,PB=26,iw=W-PL-PR,ih=H-PT-PB;
+  const ymax=Math.max(...data.flatMap(d=>[d.ist,d.sollI,d.sollA].filter(v=>v!=null)),10)*1.12;
+  const x=i=>PL+(data.length===1?iw/2:i*iw/(data.length-1)),y=v=>PT+ih-(v/ymax*ih);
+  const bw=Math.min(26,iw/data.length*0.55),COL={hit:'var(--green)',short:'var(--warn)',fail:'var(--red)',na:'var(--text3)'};
+  const grid=[0,0.5,1].map(f=>{const yy=PT+ih-f*ih;return`<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="var(--border)"/><text x="0" y="${yy+3}">${Math.round(ymax*f)}</text>`}).join('');
+  const bars=data.map((d,i)=>{const soll=d.sollA!=null?d.sollA:d.sollI,cls=classifyVolume(d.ist,soll);return`<rect x="${x(i)-bw/2}" y="${y(d.ist)}" width="${bw}" height="${PT+ih-y(d.ist)}" fill="${COL[cls]}" opacity="0.85"><title>${d.date}: ${d.ist} Reps · Soll ${soll==null?'n/a':soll} (${cls})</title></rect>`}).join('');
+  const polyline=(key,attrs)=>{const pts=data.map((d,i)=>d[key]!=null?`${x(i)},${y(d[key])}`:null).filter(Boolean).join(' ');return pts?`<polyline points="${pts}" fill="none" ${attrs}/>`:''};
+  const lineI=polyline('sollI','stroke="var(--text2)" stroke-width="1.5" stroke-dasharray="4 3"'),lineA=polyline('sollA','stroke="var(--blue)" stroke-width="2"');
+  const step=Math.ceil(data.length/6),xlab=data.map((d,i)=>i%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.date.slice(5)}</text>`:'').join('');
+  c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${grid}${bars}${lineI}${lineA}${xlab}</svg>
+  <div class="chart-legend"><span class="legend-item"><span class="legend-swatch dash"></span>Soll initial</span><span class="legend-item"><span class="legend-swatch" style="background:var(--blue)"></span>Soll adaptiv</span><span class="legend-item"><span class="legend-swatch" style="background:var(--green)"></span>erreicht</span><span class="legend-item"><span class="legend-swatch" style="background:var(--warn)"></span>knapp</span><span class="legend-item"><span class="legend-swatch" style="background:var(--red)"></span>abgebrochen</span></div>`;
+}
+
+// Chart 3 — Max-Set-Verlauf (Tag 1) mit Meilenstein-Linien (feste 0-100-Skala = Ziel im Blick).
+function renderMaxSetChart(){
+  const c=document.getElementById('dash-maxset'),data=getMaxSetSeries();
+  if(!data.length){c.innerHTML='<div class="empty-state">Noch keine Max-Set-Sessions (Tag 1)</div>';return}
+  const W=560,H=200,PL=30,PR=24,PT=14,PB=26,iw=W-PL-PR,ih=H-PT-PB,ymax=100;
+  const x=i=>PL+(data.length===1?iw/2:i*iw/(data.length-1)),y=v=>PT+ih-(Math.min(v,ymax)/ymax*ih);
+  const ms=MILESTONES.map(m=>{const yy=y(m),reached=data.some(d=>d.val>=m);return`<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="${reached?'var(--accent-dim)':'var(--border)'}" stroke-dasharray="${m===100?'':'2 2'}"/><text x="${W-PR+2}" y="${yy+3}" fill="${reached?'var(--accent)':'var(--text3)'}">${m}</text>`}).join('');
+  const line=`<polyline points="${data.map((d,i)=>`${x(i)},${y(d.val)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  const dots=data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.val)}" r="3" fill="var(--accent)"><title>${d.date}: ${d.val} Reps</title></circle>`).join('');
+  const step=Math.ceil(data.length/6),xlab=data.map((d,i)=>i%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.date.slice(5)}</text>`:'').join('');
+  c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${ms}${line}${dots}${xlab}</svg>`;
+}
+
+// Chart 4 — Pace-Trefferquote (Tag 2/3) als Donut via conic-gradient (keine Lib).
+function renderPaceDonut(){
+  const c=document.getElementById('dash-pace'),d=getPaceDist(),tot=d.hit+d.miss+d.fail;
+  if(!tot){c.innerHTML='<div class="empty-state">Noch keine bewerteten Sessions</div>';return}
+  const seg=[['hit','var(--green)','Pace gehalten'],['miss','var(--warn)','knapp verfehlt'],['fail','var(--red)','nicht gehalten']];
+  let acc=0;const stops=[];
+  seg.forEach(([k,col])=>{if(d[k]>0){stops.push(`${col} ${acc/tot*360}deg ${(acc+d[k])/tot*360}deg`)}acc+=d[k]});
+  const rows=seg.map(([k,col,lbl])=>`<div class="donut-row"><span class="lbl"><span class="dot" style="background:${col}"></span>${lbl}</span><span style="color:var(--text)">${d[k]} · ${Math.round(d[k]/tot*100)}%</span></div>`).join('');
+  c.innerHTML=`<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${stops.join(',')})"></div><div class="donut-legend">${rows}</div></div>`;
+}
+
 // ===== TOAST =====
 function showToast(m,type){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(type==='error'?' error':'');setTimeout(()=>t.className='toast',2500)}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 // ===== INIT =====
-function renderAll(){renderLog();renderPlan()}
+function renderAll(){renderLog();renderPlan();renderStats()}
 loadConfig();
 if(config.sheetId)fetchFromSheet();
 </script>
