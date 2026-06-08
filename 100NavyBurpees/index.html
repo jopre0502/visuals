@@ -250,6 +250,29 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
     <button id="btn-skip" class="ctrl-btn ghost" style="display:none">Skip Pause</button>
     <button id="btn-stop" class="ctrl-btn danger" style="display:none">Stop</button>
   </div>
+
+  <!-- DIREKT-LOG: erscheint nach Lauf-Ende (finishSession/Stop), vorbefüllt aus setsRecord -->
+  <div id="run-save" class="manual-log" style="display:none;margin-top:1.5rem">
+    <h3>Lauf ins Log speichern</h3>
+    <div id="rs-summary" style="font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--text2);margin-bottom:1rem"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Datum</label><input type="date" id="rs-date"></div>
+      <div class="form-group"><label>Pace (RPM)</label><input type="number" id="rs-pace" step="0.5" min="0"></div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group"><label>Reps (Sätze, ; getrennt)</label><input type="text" id="rs-sets"></div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group"><label>Pausen (Sek., ; getrennt — optional)</label><input type="text" id="rs-pausen"></div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group"><label>Notizen (optional)</label><textarea id="rs-notes" rows="2" placeholder="z.B. Atmung ab Rep 12 instabil"></textarea></div>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button id="rs-save" class="ctrl-btn primary" style="flex:1" onclick="saveRunFromPanel()">Ins Log speichern</button>
+      <button id="rs-dismiss" class="ctrl-btn ghost" onclick="document.getElementById('run-save').style.display='none'">Verwerfen</button>
+    </div>
+  </div>
 </div>
 
 <!-- LOG -->
@@ -676,7 +699,7 @@ function updateRepDisplay(){if(targetReps>0){$reps.innerHTML=repsRound+'<span cl
 
 $start.addEventListener('click',()=>{initAudio();if(state==='idle'||state==='done')startSession();else if(state==='paused')resumeSession();else pauseSession()});
 
-function startSession(){const cfg=getConfig();curRepSec=getRepSec();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];state='work';$start.textContent='Pause';$endset.style.display=selectedDay===1?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
+function startSession(){const cfg=getConfig();curRepSec=getRepSec();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];document.getElementById('run-save').style.display='none';state='work';$start.textContent='Pause';$endset.style.display=selectedDay===1?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
 
 function startWorkRound(){curRound++;repsRound=0;repCountdown=curRepSec;const cfg=getConfig();state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;$mRound.textContent=curRound+'/'+totalRounds;$cd.className='ring-countdown';$rlabel.textContent=curRepSec+'s / Rep';$skip.style.display='none';$endset.style.display=selectedDay===1?'inline-block':'none';updateRepDisplay();beepPace();clearInterval(mainTick);
 mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn'}if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}
@@ -688,20 +711,35 @@ mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemainin
 
 $skip.addEventListener('click',()=>{if(state==='rest'){clearInterval(mainTick);beepRound();startWorkRound()}});
 
-function finishSession(){clearInterval(mainTick);state='done';$phase.className='phase-text done';$phase.textContent='Fertig';$cd.className='ring-countdown';$cd.textContent='✓';$rlabel.textContent='';setRing(1);$start.textContent='Neu';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';beepDone();showToast(`${repsTotal} Reps in ${setsRecord.length} Sätzen`)}
+function finishSession(){clearInterval(mainTick);state='done';$phase.className='phase-text done';$phase.textContent='Fertig';$cd.className='ring-countdown';$cd.textContent='✓';$rlabel.textContent='';setRing(1);$start.textContent='Neu';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';beepDone();showToast(`${repsTotal} Reps in ${setsRecord.length} Sätzen`);offerRunSave(setsRecord.slice(),repsTotal)}
 
-$stop.addEventListener('click',()=>{clearInterval(mainTick);if(repsRound>0)setsRecord.push(repsRound);const t=setsRecord.reduce((a,b)=>a+b,0);resetTimerUI();if(t>0)showToast(`${t} Reps gestoppt (${setsRecord.join('/')})`)});
+$stop.addEventListener('click',()=>{clearInterval(mainTick);if(repsRound>0)setsRecord.push(repsRound);const snap=setsRecord.slice(),t=snap.reduce((a,b)=>a+b,0);resetTimerUI();if(t>0){showToast(`${t} Reps gestoppt (${snap.join('/')})`);offerRunSave(snap,t)}});
 
 function pauseSession(){clearInterval(mainTick);state='paused';$start.textContent='Weiter';$phase.textContent+=' ⏸'}
 
 function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const cfg=getConfig();$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
 
-function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent=getRepSec();$rlabel.textContent=getRepSec()+'s / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[]}
+function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent=getRepSec();$rlabel.textContent=getRepSec()+'s / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[];document.getElementById('run-save').style.display='none'}
 
 document.addEventListener('keydown',e=>{if(!document.getElementById('v-timer').classList.contains('active'))return;if(e.code==='Space'){e.preventDefault();$start.click()}if(e.code==='KeyE'&&state==='work'&&selectedDay===1)$endset.click()});
 
 // ===== MANUAL LOG =====
 document.getElementById('ml-date').valueAsDate=new Date();
+
+// Gemeinsamer verifizierter Schreibpfad (manualLog + Direkt-Log aus dem Timer).
+// Sendet nur Rohdaten; bestaetigt via Read-back (verifyInSheet) gegen den no-cors-Blindflug (QG-1).
+async function logSession(payload,match,btn){
+  const oldLabel=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Speichern...'}
+  const sent=await postToSheet({action:'add',...payload});
+  if(sent===false){if(btn){btn.disabled=false;btn.textContent=oldLabel}return false}
+  if(btn)btn.innerHTML='<span class="spinner"></span>Prüfe...';
+  const confirmed=await verifyInSheet({date:match.date,day:match.day,total:match.total});
+  if(btn){btn.disabled=false;btn.textContent=oldLabel}
+  if(confirmed)showToast(`${match.total} Reps eingetragen`);
+  else showToast('Nicht im Sheet angekommen — Verbindung/Deployment prüfen','error');
+  return confirmed;
+}
 
 async function manualLog(){
   const day=parseInt(document.getElementById('ml-day').value);
@@ -718,36 +756,53 @@ async function manualLog(){
   const stageLabel=day===2&&!isNaN(stageVal)?STAGES[stageVal].label:day===3&&!isNaN(stageVal)?STAGES_OP[stageVal].label:'';
   const pausen=pausenStr.split(/[,;]/).map(s=>s.trim()).filter(Boolean).join(';');
 
-  const btn=document.getElementById('btn-log');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Speichern...';
-
-  // Nur Rohdaten senden — Gesamt/MaxSet rechnet das Frontend beim Lesen.
-  const sent=await postToSheet({
-    action:'add',
-    datum:date,
-    typ:dayToTyp(day),
-    saetze:sets.join(';'),
-    pace:paceStr.trim(),
-    pausen,
-    stufe:stageLabel,
-    notizen:notes
-  });
-
-  if(sent===false){btn.disabled=false;btn.textContent='Eintragen';return}
-
-  // Read-back: erst bestaetigen, wenn der Eintrag wirklich im Sheet auftaucht
-  btn.innerHTML='<span class="spinner"></span>Prüfe...';
-  const confirmed=await verifyInSheet({date,day,total});
-  btn.disabled=false;btn.textContent='Eintragen';
-
-  if(confirmed){
-    showToast(`${total} Reps eingetragen`);
+  const ok=await logSession(
+    {datum:date,typ:dayToTyp(day),saetze:sets.join(';'),pace:paceStr.trim(),pausen,stufe:stageLabel,notizen:notes},
+    {date,day,total},
+    document.getElementById('btn-log')
+  );
+  if(ok){
     document.getElementById('ml-reps').value='';
     document.getElementById('ml-notes').value='';
     document.getElementById('ml-pausen').value='';
-  }else{
-    showToast('Nicht im Sheet angekommen — Verbindung/Deployment prüfen','error');
   }
+}
+
+// ===== DIREKT-LOG (TASK-011 Slice 1) =====
+// Nach Lauf-Ende: Ergebnis aus setsRecord vorbefuellen, editierbar bestaetigen, verifiziert speichern.
+let lastRunDay=1,lastRunStage='';
+function offerRunSave(sets,total){
+  if(!sets.length||total<=0)return;                       // QG-3: nichts Sinnloses anbieten
+  const day=selectedDay;
+  lastRunDay=day;
+  const sv=day===2?parseInt(document.getElementById('sel-stage').value):day===3?parseInt(document.getElementById('sel-stage-op').value):NaN;
+  lastRunStage=day===2&&!isNaN(sv)?STAGES[sv].label:day===3&&!isNaN(sv)?STAGES_OP[sv].label:'';
+  // Pace = Zielpace, die der Timer gepiept hat (Tag 1/2 = 5 RPM, Tag 3 aus der Stufe). Begruendung: Pace
+  // nicht halten = Abbruch (vgl. CLAUDE.md Tag 1) -> die gehaltene Pace IST die Zielpace, das Prefill ist
+  // korrekt (kein Schaetzen). Bleibt editierbar fuer Sonderfaelle; die App misst die Pace nicht selbst.
+  const pace=day===3?Math.round(60/curRepSec*10)/10:PACE_TARGET[day];
+  const restSec=getConfig().restSec;
+  document.getElementById('rs-date').valueAsDate=new Date();
+  document.getElementById('rs-summary').textContent=`${total} Reps · ${sets.length} Sätze (${sets.join('/')}) · ${dayToTyp(day)}`;
+  document.getElementById('rs-sets').value=sets.join(';');
+  document.getElementById('rs-pace').value=pace;
+  document.getElementById('rs-pausen').value=Array(Math.max(0,sets.length-1)).fill(restSec).join(';');
+  document.getElementById('rs-notes').value='';
+  document.getElementById('run-save').style.display='block';
+}
+async function saveRunFromPanel(){
+  const day=lastRunDay;
+  const date=document.getElementById('rs-date').value;
+  const sets=document.getElementById('rs-sets').value.split(/[,;]/).map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+  if(!date||!sets.length){showToast('Datum und Reps benötigt','error');return}        // QG-3
+  const total=sets.reduce((a,b)=>a+b,0);
+  const pausen=document.getElementById('rs-pausen').value.split(/[,;]/).map(s=>s.trim()).filter(Boolean).join(';');
+  const ok=await logSession(
+    {datum:date,typ:dayToTyp(day),saetze:sets.join(';'),pace:document.getElementById('rs-pace').value.trim(),pausen,stufe:lastRunStage,notizen:document.getElementById('rs-notes').value},
+    {date,day,total},
+    document.getElementById('rs-save')
+  );
+  if(ok)document.getElementById('run-save').style.display='none';
 }
 
 // ===== LOG RENDER =====
