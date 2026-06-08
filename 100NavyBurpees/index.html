@@ -901,15 +901,32 @@ function renderPlanProgress(){
   if(!data.length){c.innerHTML='<div class="empty-state">Noch keine Stufen-Sessions (Tag 2/3)</div>';return}
   const W=560,H=200,PL=30,PR=10,PT=14,PB=26,iw=W-PL-PR,ih=H-PT-PB;
   const ymax=Math.max(...data.flatMap(d=>[d.ist,d.sollI,d.sollA].filter(v=>v!=null)),10)*1.12;
-  const x=i=>PL+(data.length===1?iw/2:i*iw/(data.length-1)),y=v=>PT+ih-(v/ymax*ih);
+  // X = echte Datums-Schiene (statt Session-Index): ungleiche Trainingsabstaende werden sichtbar.
+  // span=0 (alle am selben Tag) -> Index-Fallback, sonst zeit-proportional.
+  const t=d=>new Date(d.date).getTime(),t0=t(data[0]),span=t(data[data.length-1])-t0;
+  const xs=data.map((d,i)=>data.length===1?PL+iw/2:(span>0?PL+(t(d)-t0)/span*iw:PL+i*iw/(data.length-1)));
+  const x=i=>xs[i],y=v=>PT+ih-(v/ymax*ih);
   const bw=Math.min(26,iw/data.length*0.55),COL={hit:'var(--green)',short:'var(--warn)',fail:'var(--red)',na:'var(--text3)'};
   const grid=[0,0.5,1].map(f=>{const yy=PT+ih-f*ih;return`<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="var(--border)"/><text x="0" y="${yy+3}">${Math.round(ymax*f)}</text>`}).join('');
   const bars=data.map((d,i)=>{const soll=d.sollA!=null?d.sollA:d.sollI,cls=classifyVolume(d.ist,soll);return`<rect x="${x(i)-bw/2}" y="${y(d.ist)}" width="${bw}" height="${PT+ih-y(d.ist)}" fill="${COL[cls]}" opacity="0.85"><title>${d.date}: ${d.ist} Reps · Soll ${soll==null?'n/a':soll} (${cls})</title></rect>`}).join('');
   const polyline=(key,attrs)=>{const pts=data.map((d,i)=>d[key]!=null?`${x(i)},${y(d[key])}`:null).filter(Boolean).join(' ');return pts?`<polyline points="${pts}" fill="none" ${attrs}/>`:''};
-  const lineI=polyline('sollI','stroke="var(--text2)" stroke-width="1.5" stroke-dasharray="4 3"'),lineA=polyline('sollA','stroke="var(--blue)" stroke-width="2"');
+  // Initial & adaptiv sind deckungsgleich, solange der Coach (TASK-012) nichts angepasst hat -> die obere
+  // Linie verdeckt die untere komplett. Daher: bei Gleichheit nur eine "Soll"-Linie + ehrlicher Hinweis;
+  // sobald der adaptierte Plan divergiert, automatisch beide getrennt (initial gestrichelt zuletzt = sichtbar).
+  const samePlan=data.every(d=>d.sollI!=null&&d.sollI===d.sollA);
+  let sollLines,sollLegend;
+  if(samePlan){
+    sollLines=polyline('sollA','stroke="var(--blue)" stroke-width="2"');
+    sollLegend='<span class="legend-item"><span class="legend-swatch" style="background:var(--blue)"></span>Soll (Plan unverändert)</span>';
+  }else{
+    const lineA=polyline('sollA','stroke="var(--blue)" stroke-width="2"');
+    const lineI=polyline('sollI','stroke="var(--text2)" stroke-width="2" stroke-dasharray="5 3"');
+    sollLines=lineA+lineI;  // initial zuletzt -> nie komplett verdeckt
+    sollLegend='<span class="legend-item"><span class="legend-swatch dash"></span>Soll initial</span><span class="legend-item"><span class="legend-swatch" style="background:var(--blue)"></span>Soll adaptiv</span>';
+  }
   const step=Math.ceil(data.length/6),xlab=data.map((d,i)=>i%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.date.slice(5)}</text>`:'').join('');
-  c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${grid}${bars}${lineI}${lineA}${xlab}</svg>
-  <div class="chart-legend"><span class="legend-item"><span class="legend-swatch dash"></span>Soll initial</span><span class="legend-item"><span class="legend-swatch" style="background:var(--blue)"></span>Soll adaptiv</span><span class="legend-item"><span class="legend-swatch" style="background:var(--green)"></span>erreicht</span><span class="legend-item"><span class="legend-swatch" style="background:var(--warn)"></span>knapp</span><span class="legend-item"><span class="legend-swatch" style="background:var(--red)"></span>abgebrochen</span></div>`;
+  c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${grid}${bars}${sollLines}${xlab}</svg>
+  <div class="chart-legend">${sollLegend}<span class="legend-item"><span class="legend-swatch" style="background:var(--green)"></span>erreicht</span><span class="legend-item"><span class="legend-swatch" style="background:var(--warn)"></span>knapp</span><span class="legend-item"><span class="legend-swatch" style="background:var(--red)"></span>abgebrochen</span></div>`;
 }
 
 // Chart 3 — Max-Set-Verlauf (Tag 1) mit Meilenstein-Linien (feste 0-100-Skala = Ziel im Blick).
