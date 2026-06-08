@@ -178,7 +178,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <button class="nav-btn" data-view="log">Log</button>
   <button class="nav-btn" data-view="plan">Plan</button>
   <button class="nav-btn" data-view="stats">Stats</button>
-  <button class="nav-btn" data-view="settings">Setup</button>
+  <button class="nav-btn" data-view="settings">Config</button>
 </nav>
 
 <div class="status-bar">
@@ -319,6 +319,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
     <div class="settings-status" id="cfg-status">Noch nicht konfiguriert</div>
   </div>
   <div class="settings-section">
+    <div class="settings-label">App-Verhalten</div>
+    <div class="settings-group">
+      <label>„Soll erreicht" ab (%)</label>
+      <input type="number" id="set-cls-hit" min="1" max="200" step="1">
+      <div class="settings-hint">Ist/Soll ≥ Wert → grün im Dashboard (Chart „Reps/Woche")</div>
+    </div>
+    <div class="settings-group">
+      <label>„Knapp" ab (%)</label>
+      <input type="number" id="set-cls-short" min="1" max="200" step="1">
+      <div class="settings-hint">darunter → rot. Muss kleiner als „erreicht" sein.</div>
+    </div>
+    <button class="ctrl-btn primary" onclick="saveSettingsUI()">Speichern</button>
+    <button class="data-btn" style="display:block;width:100%;padding:0.75rem;background:var(--bg-card);border:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text2);text-align:center;margin-top:0.5rem;cursor:pointer" onclick="resetSettings()">Auf Default zurücksetzen</button>
+    <div class="settings-hint" style="margin-top:0.5rem">Gilt nur auf diesem Gerät/Browser (kein Sheet-Sync).</div>
+  </div>
+  <div class="settings-section">
     <div class="settings-label">Sheet einrichten</div>
     <div class="settings-hint" style="line-height:1.8;color:var(--text2)">
       1. Neues Google Sheet anlegen<br>
@@ -390,6 +406,14 @@ function getRepSec(){
 let sessions=[], config={sheetId:'',scriptUrl:'',apiToken:''};
 let planInitial={2:[],3:[]}, planAdapted={2:[],3:[]};  // aus Sheet-Tab 'Plan' (TASK-009)
 
+// App-Settings (TASK-013): zentrale Defaults, per localStorage 'bt-settings' ueberlagert.
+// Steuert App-VERHALTEN (Schwellen/Anzeige) — NICHT Plan-Daten (RPM/Reps/Stufen leben im Sheet, TASK-009).
+const DEFAULTS={
+  clsHit:1.00,    // classifyVolume: ab diesem Ist/Soll-Verhaeltnis gilt eine Session als 'hit' (gruen)
+  clsShort:0.90   // classifyVolume: ab hier 'short' (gelb); darunter 'fail' (rot)
+};
+let settings={...DEFAULTS};
+
 // ===== GOOGLE SHEETS STORAGE =====
 function loadConfig(){
   try{
@@ -411,9 +435,45 @@ function saveConfig(){
   if(config.sheetId)fetchFromSheet();
 }
 
+// ===== APP-SETTINGS (TASK-013) =====
+// Muster 1:1 wie loadConfig/saveConfig. Merge mit DEFAULTS = vorwaertskompatibel (QG-1):
+// fehlt ein neuer Key im gespeicherten JSON, greift sein Default statt undefined.
+function loadSettings(){
+  try{ settings={...DEFAULTS, ...(JSON.parse(localStorage.getItem('bt-settings'))||{})} }
+  catch(e){ settings={...DEFAULTS} }   // localStorage aus/voll/kaputt -> Defaults (QG-4)
+}
+function saveSettings(){
+  try{ localStorage.setItem('bt-settings',JSON.stringify(settings)) }catch(e){}  // Privatmodus/voll: still, App laeuft weiter
+}
+// settings -> Eingabefelder (intern 0..2 als Verhaeltnis, UI als Prozent).
+function fillSettingsUI(){
+  const h=document.getElementById('set-cls-hit'), s=document.getElementById('set-cls-short');
+  if(h)h.value=Math.round(settings.clsHit*100);
+  if(s)s.value=Math.round(settings.clsShort*100);
+}
+// Eingabefelder -> settings, mit Validierung (QG-3). clsShort MUSS < clsHit, sonst Abbruch.
+function saveSettingsUI(){
+  const hit=parseFloat(document.getElementById('set-cls-hit').value)/100;
+  const short=parseFloat(document.getElementById('set-cls-short').value)/100;
+  if(isNaN(hit)||isNaN(short)){ showToast('Bitte gültige Prozentwerte eingeben','error'); return }
+  if(short>=hit){ showToast('„Knapp" muss kleiner als „erreicht" sein','error'); return }
+  settings.clsHit=hit; settings.clsShort=short;
+  saveSettings();
+  fillSettingsUI();          // gerundete/normalisierte Werte zurueckspiegeln
+  renderStats();             // Live-Apply: Chart 2 mit neuen Schwellen neu faerben
+  showToast('Einstellungen gespeichert');
+}
+function resetSettings(){
+  settings={...DEFAULTS};
+  saveSettings();
+  fillSettingsUI();
+  renderStats();
+  showToast('Auf Default zurückgesetzt');
+}
+
 function updateStatus(){
   const dot=document.getElementById('s-dot'),txt=document.getElementById('s-text');
-  if(!config.sheetId){dot.className='status-dot none';txt.textContent='Nicht konfiguriert — Setup öffnen'}
+  if(!config.sheetId){dot.className='status-dot none';txt.textContent='Nicht konfiguriert — Config öffnen'}
   else{dot.className='status-dot ok';txt.textContent='Sheet verbunden'}
   // Setup-Seiten-Status (cfg-status) war statisch und wurde nie aktualisiert — hier anbinden.
   const cs=document.getElementById('cfg-status');
@@ -800,12 +860,13 @@ function stagePlanVolume(stageIdx,which){
 
 // Trainings-Klassifikation: hat die Session ihr Stufen-Soll-Volumen erreicht?
 // Stellschraube (Trainings-Semantik): ab welchem Ist/Soll-Verhaeltnis gilt eine Session als
-// erfuellt / knapp / abgebrochen. Defaults: >=95% erreicht, >=80% knapp, sonst abgebrochen.
+// erfuellt / knapp / abgebrochen. Schwellen kommen aus settings (Config-Tab, TASK-013),
+// Defaults in DEFAULTS: >=100% erreicht, >=90% knapp, sonst abgebrochen.
 function classifyVolume(ist,soll){
   if(soll==null||!soll)return 'na';
   const r=ist/soll;
-  if(r>=1.00)return 'hit';
-  if(r>=0.90)return 'short';
+  if(r>=settings.clsHit)return 'hit';
+  if(r>=settings.clsShort)return 'short';
   return 'fail';
 }
 
@@ -881,6 +942,8 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 
 // ===== INIT =====
 function renderAll(){renderLog();renderPlan();renderStats()}
+loadSettings();   // vor erstem Render: classifyVolume liest settings.clsHit/clsShort
+fillSettingsUI(); // Config-Felder mit aktuellen Werten vorbelegen
 loadConfig();
 if(config.sheetId)fetchFromSheet();
 </script>
