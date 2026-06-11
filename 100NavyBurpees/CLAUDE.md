@@ -14,6 +14,8 @@ Gehostet als statische HTML-Seite auf GitHub Pages, Backend via Google Sheets.
 100NavyBurpees/
 ├── index.html                    # Kompletter Monolith (HTML + CSS + JS)
 ├── burpee-tracker-appscript.js   # Google Apps Script für Sheet-Backend (Copy-Paste in GAS Editor)
+├── .claude/agents/
+│   └── fitness-coach.md          # Getrackter Coach-Subagent (TASK-012): read-only Log-Auswertung
 └── CLAUDE.md                     # Diese Datei
 ```
 
@@ -153,12 +155,19 @@ Markiert den Moment, an dem die nächste Rep beginnen sollte.
 
 ## Adaptive Logik
 
-Im Plan-View werden automatisch Empfehlungen generiert:
+Zwei Instanzen, **gleiche Regel-Basis**, unterschiedliche Tiefe:
+
+**1. In-App (`checkAdaptive`, schnell/offline):** Im Plan-View automatisch generierte Empfehlungen —
 
 - **Max Set stagniert** (3 Sessions ohne Steigerung) → Deload empfehlen
 - **Pace 2/3x nicht gehalten** (Tag 2) → Stufenrückfall empfehlen
 - **Pace teilweise** (2/3 Sessions) → Stufe wiederholen
 - **Wochenvolumen sinkt** (2+ Wochen <80% des Vorwerts) → Overreaching-Warnung
+
+**2. `fitness-coach`-Subagent (TASK-012, `.claude/agents/`, periodisch/tief):** **read-only** Auswertung
+quantitativ **+** qualitativ (Freitext-`notes`). Spiegelt dieselbe Quanti-Logik, ergänzt Muster aus den
+Notizen, liefert begründeten Plan-Diff (`quelle=coach`) + Coach-Report — schreibt **nicht** selbst (kein
+Token im Agent; Eintrag via App-UI/Main-Session). On-demand-Aufruf, Empfehlung wöchentlich.
 
 ## Konventionen
 
