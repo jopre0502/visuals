@@ -218,9 +218,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
         <option value="4">Stufe 4 — 8x6 @ 6 RPM / 90s Pause</option>
       </select>
     </div>
+    <!-- TASK-016: gestaffelte Pausen — Satz 1 ist All-out (laengste Pause), Folgesaetze submaximal. -->
     <div id="config-manual" class="config-grid">
-      <div class="config-item"><label>Sätze</label><input type="number" id="cfg-sets" value="5" min="1" max="20"></div>
-      <div class="config-item"><label>Pause (Sek)</label><input type="number" id="cfg-rest" value="150" min="10" max="600" step="10"></div>
+      <div class="config-item" style="grid-column:1/-1"><label>Sätze</label><input type="number" id="cfg-sets" value="5" min="1" max="20"></div>
+      <div class="config-item"><label>Pause n. Satz 1 (Sek)</label><input type="number" id="cfg-rest1" value="150" min="10" max="600" step="10"></div>
+      <div class="config-item"><label>Folgepausen (Sek)</label><input type="number" id="cfg-restn" value="90" min="10" max="600" step="10"></div>
     </div>
   </div>
 
@@ -730,7 +732,16 @@ function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60)
 function getConfig(){
   if(selectedDay===2){const st=STAGES[parseInt(document.getElementById('sel-stage').value)];return{rounds:st.rounds,workSec:st.work_min*60,restSec:st.rest_sec,targetReps:st.work_reps}}
   if(selectedDay===3){const st=STAGES_OP[parseInt(document.getElementById('sel-stage-op').value)];return{rounds:st.rounds,workSec:0,restSec:st.rest_sec,targetReps:st.reps}}
-  return{rounds:parseInt(document.getElementById('cfg-sets').value)||5,workSec:0,restSec:parseInt(document.getElementById('cfg-rest').value)||150,targetReps:0}
+  return{rounds:parseInt(document.getElementById('cfg-sets').value)||5,workSec:0,restSec:parseInt(document.getElementById('cfg-rest1').value)||150,targetReps:0}
+}
+// TASK-016: Dauer der idx-ten Pause (0-basiert; idx 0 = Pause NACH Satz 1). Einzige Wahrheit fuer
+// die Staffelung — Timer-Engine UND Direkt-Log-Prefill lesen hier, also bleiben sie deckungsgleich.
+// Tag 1: erste Pause laenger (All-out-Satz), danach Folgepause. Tag 2/3: konstante Stufen-Pause.
+function restSecFor(idx){
+  if(selectedDay!==1)return getConfig().restSec;
+  const r1=parseInt(document.getElementById('cfg-rest1').value)||150;
+  const rn=parseInt(document.getElementById('cfg-restn').value)||90;
+  return idx<=0?r1:rn;
 }
 function setRing(f,c){$arc.style.strokeDashoffset=CIRC*(1-f);$arc.className.baseVal='ring-fill'+(c?' '+c:'')}
 function updateRepDisplay(){if(targetReps>0){$reps.innerHTML=repsRound+'<span class="rep-target">/'+targetReps+'</span>'}else{$reps.textContent=repsRound}$mTotal.textContent=repsTotal}
@@ -744,8 +755,8 @@ mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown
 
 $endset.addEventListener('click',()=>{if(state!=='work'||selectedDay!==1)return;clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()});
 
-function startRestPhase(){const cfg=getConfig();state='rest';restRemaining=cfg.restSec;$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;$cd.className='ring-countdown rest-color';$cd.textContent=restRemaining;$rlabel.textContent='Pause';$endset.style.display='none';$skip.style.display='inline-block';setRing(1,'rest');beepRest();clearInterval(mainTick);
-mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=3&&restRemaining>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn';beep(660,0.06,0.1)}if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}
+function startRestPhase(){const restDur=restSecFor(curRound-1);state='rest';restRemaining=restDur;$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;$cd.className='ring-countdown rest-color';$cd.textContent=restRemaining;$rlabel.textContent='Pause';$endset.style.display='none';$skip.style.display='inline-block';setRing(1,'rest');beepRest();clearInterval(mainTick);
+mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/restDur,'rest');if(restRemaining<=3&&restRemaining>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn';beep(660,0.06,0.1)}if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}
 
 $skip.addEventListener('click',()=>{if(state==='rest'){clearInterval(mainTick);beepRound();startWorkRound()}});
 
@@ -755,7 +766,7 @@ $stop.addEventListener('click',()=>{clearInterval(mainTick);if(repsRound>0)setsR
 
 function pauseSession(){clearInterval(mainTick);state='paused';$start.textContent='Weiter';$phase.textContent+=' ⏸'}
 
-function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const cfg=getConfig();$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/cfg.restSec,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
+function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const restDur=restSecFor(curRound-1);$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/restDur,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
 
 function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent=getRepSec();$rlabel.textContent=getRepSec()+'s / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[];document.getElementById('run-save').style.display='none'}
 
@@ -819,12 +830,13 @@ function offerRunSave(sets,total){
   // nicht halten = Abbruch (vgl. CLAUDE.md Tag 1) -> die gehaltene Pace IST die Zielpace, das Prefill ist
   // korrekt (kein Schaetzen). Bleibt editierbar fuer Sonderfaelle; die App misst die Pace nicht selbst.
   const pace=day===3?Math.round(60/curRepSec*10)/10:PACE_TARGET[day];
-  const restSec=getConfig().restSec;
+  // TASK-016: Pausen aus derselben Staffel-Logik wie der Timer -> der Log spiegelt den echten Lauf (Tag 1: 150;90;90...).
+  const pausenPrefill=Array.from({length:Math.max(0,sets.length-1)},(_,i)=>restSecFor(i)).join(';');
   document.getElementById('rs-date').valueAsDate=new Date();
   document.getElementById('rs-summary').textContent=`${total} Reps · ${sets.length} Sätze (${sets.join('/')}) · ${dayToTyp(day)}`;
   document.getElementById('rs-sets').value=sets.join(';');
   document.getElementById('rs-pace').value=pace;
-  document.getElementById('rs-pausen').value=Array(Math.max(0,sets.length-1)).fill(restSec).join(';');
+  document.getElementById('rs-pausen').value=pausenPrefill;
   document.getElementById('rs-notes').value='';
   document.getElementById('run-save').style.display='block';
 }
