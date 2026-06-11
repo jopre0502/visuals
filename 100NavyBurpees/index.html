@@ -728,6 +728,26 @@ const $arc=document.getElementById('ring-arc'),$cd=document.getElementById('r-cd
 
 let state='idle',mainTick=null,elapsed=0,curRound=0,totalRounds=0,repsRound=0,repsTotal=0,targetReps=0,repCountdown=12,restRemaining=0,setsRecord=[],curRepSec=12;
 
+// TASK-017: Screen Wake Lock — haelt das Display waehrend eines aktiven Laufs an (niemand beruehrt
+// das Handy beim Burpee -> Auto-Sperre wuerde den 1s-mainTick drosseln/recyceln). Feature-detect +
+// try/catch = fail-safe: Altgeraete/Akku-Sparmodus laufen normal weiter, nur ohne Lock.
+let wakeLock=null;
+async function acquireWakeLock(){
+  if(!('wakeLock' in navigator)||wakeLock)return;          // Altgeraet ODER schon gehalten: still raus (QG-1)
+  try{
+    wakeLock=await navigator.wakeLock.request('screen');
+    // Browser gibt den Lock automatisch frei, sobald der Tab in den Hintergrund geht. Das Event nullt
+    // unsere Referenz -> sonst blockt der Guard oben das spaetere Re-Acquire (stale Sentinel = Footgun).
+    wakeLock.addEventListener('release',()=>{wakeLock=null});
+  }catch(e){}                                               // verweigert/Akku-Sparmodus: still (QG-4)
+}
+function releaseWakeLock(){ if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null } }
+// Tab-Rueckkehr bei laufendem Timer: neu anfordern (der BG-Wechsel hat den Lock auto-freigegeben).
+// Bei 'paused' bewusst NICHT — der Bildschirm darf sich sperren (Akku).
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&(state==='work'||state==='rest'))acquireWakeLock();
+});
+
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function getConfig(){
   if(selectedDay===2){const st=STAGES[parseInt(document.getElementById('sel-stage').value)];return{rounds:st.rounds,workSec:st.work_min*60,restSec:st.rest_sec,targetReps:st.work_reps}}
@@ -748,7 +768,7 @@ function updateRepDisplay(){if(targetReps>0){$reps.innerHTML=repsRound+'<span cl
 
 $start.addEventListener('click',()=>{initAudio();if(state==='idle'||state==='done')startSession();else if(state==='paused')resumeSession();else pauseSession()});
 
-function startSession(){const cfg=getConfig();curRepSec=getRepSec();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];document.getElementById('run-save').style.display='none';state='work';$start.textContent='Pause';$endset.style.display=selectedDay===1?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
+function startSession(){acquireWakeLock();const cfg=getConfig();curRepSec=getRepSec();totalRounds=cfg.rounds;targetReps=cfg.targetReps;curRound=0;repsTotal=0;elapsed=0;setsRecord=[];document.getElementById('run-save').style.display='none';state='work';$start.textContent='Pause';$endset.style.display=selectedDay===1?'inline-block':'none';$skip.style.display='none';$stop.style.display='inline-block';startWorkRound()}
 
 function startWorkRound(){curRound++;repsRound=0;repCountdown=curRepSec;const cfg=getConfig();state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;$mRound.textContent=curRound+'/'+totalRounds;$cd.className='ring-countdown';$rlabel.textContent=curRepSec+'s / Rep';$skip.style.display='none';$endset.style.display=selectedDay===1?'inline-block':'none';updateRepDisplay();beepPace();clearInterval(mainTick);
 mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0){$cd.className='ring-countdown warn-color';$arc.className.baseVal='ring-fill warn'}if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}
@@ -760,13 +780,13 @@ mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemainin
 
 $skip.addEventListener('click',()=>{if(state==='rest'){clearInterval(mainTick);beepRound();startWorkRound()}});
 
-function finishSession(){clearInterval(mainTick);state='done';$phase.className='phase-text done';$phase.textContent='Fertig';$cd.className='ring-countdown';$cd.textContent='✓';$rlabel.textContent='';setRing(1);$start.textContent='Neu';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';beepDone();showToast(`${repsTotal} Reps in ${setsRecord.length} Sätzen`);offerRunSave(setsRecord.slice(),repsTotal)}
+function finishSession(){clearInterval(mainTick);releaseWakeLock();state='done';$phase.className='phase-text done';$phase.textContent='Fertig';$cd.className='ring-countdown';$cd.textContent='✓';$rlabel.textContent='';setRing(1);$start.textContent='Neu';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';beepDone();showToast(`${repsTotal} Reps in ${setsRecord.length} Sätzen`);offerRunSave(setsRecord.slice(),repsTotal)}
 
-$stop.addEventListener('click',()=>{clearInterval(mainTick);if(repsRound>0)setsRecord.push(repsRound);const snap=setsRecord.slice(),t=snap.reduce((a,b)=>a+b,0);resetTimerUI();if(t>0){showToast(`${t} Reps gestoppt (${snap.join('/')})`);offerRunSave(snap,t)}});
+$stop.addEventListener('click',()=>{clearInterval(mainTick);releaseWakeLock();if(repsRound>0)setsRecord.push(repsRound);const snap=setsRecord.slice(),t=snap.reduce((a,b)=>a+b,0);resetTimerUI();if(t>0){showToast(`${t} Reps gestoppt (${snap.join('/')})`);offerRunSave(snap,t)}});
 
-function pauseSession(){clearInterval(mainTick);state='paused';$start.textContent='Weiter';$phase.textContent+=' ⏸'}
+function pauseSession(){clearInterval(mainTick);releaseWakeLock();state='paused';$start.textContent='Weiter';$phase.textContent+=' ⏸'}
 
-function resumeSession(){$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const restDur=restSecFor(curRound-1);$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/restDur,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
+function resumeSession(){acquireWakeLock();$start.textContent='Pause';if($phase.textContent.includes('Pause')&&!$phase.textContent.includes('Arbeit')&&!$phase.textContent.includes('Satz')){state='rest';const restDur=restSecFor(curRound-1);$phase.className='phase-text rest';$phase.textContent=`Pause — ${restRemaining}s`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);restRemaining--;$cd.textContent=restRemaining;$phase.textContent=`Pause — ${restRemaining}s`;setRing(restRemaining/restDur,'rest');if(restRemaining<=0){clearInterval(mainTick);beepRound();startWorkRound()}},1000)}else{state='work';$phase.className='phase-text work';$phase.textContent=(selectedDay===2||selectedDay===3)?`Arbeit — Runde ${curRound}/${totalRounds}`:`Satz ${curRound}/${totalRounds}`;mainTick=setInterval(()=>{elapsed++;$mTime.textContent=fmt(elapsed);repCountdown--;if(repCountdown<=3&&repCountdown>0)$cd.className='ring-countdown warn-color';if(repCountdown<=0){repsRound++;repsTotal++;updateRepDisplay();beepPace();repCountdown=curRepSec;$cd.className='ring-countdown'}$cd.textContent=repCountdown;setRing(repCountdown/curRepSec);if((selectedDay===2||selectedDay===3)&&repsRound>=getConfig().targetReps){clearInterval(mainTick);setsRecord.push(repsRound);if(curRound>=totalRounds)finishSession();else startRestPhase()}},1000)}}
 
 function resetTimerUI(){state='idle';$phase.className='phase-text';$phase.textContent='Bereit';$cd.className='ring-countdown';$cd.textContent=getRepSec();$rlabel.textContent=getRepSec()+'s / Rep';$reps.innerHTML='0';$mRound.textContent='—';$mTime.textContent='00:00';$mTotal.textContent='0';setRing(1);$start.textContent='Start';$endset.style.display='none';$skip.style.display='none';$stop.style.display='none';repsTotal=0;setsRecord=[];document.getElementById('run-save').style.display='none'}
 
