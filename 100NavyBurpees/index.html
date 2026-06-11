@@ -7,6 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0a;--bg-card:#111;--bg-card-alt:#161616;--border:#222;--border-hi:#333;--text:#e8e8e8;--text2:#888;--text3:#555;--accent:#c4ff00;--accent-dim:#6b8a00;--blue:#5ac8fa;--red:#ff3b30;--warn:#ffb800;--green:#34c759;--orange:#ff6b00}
+/* TASK-007: Light-Theme. --accent ist ein mittelsattes Gruen (#4a9000), das als Text auf Hell (~3.8:1, OK fuer grosse UI-Schrift) UND als Button-Flaeche mit schwarzem Text (~5.6:1) traegt — Doppelrolle aus :root. Blau/Warn/Orange abgedunkelt fuer Kontrast auf Hell. */
+:root[data-theme="light"]{--bg:#f4f4f5;--bg-card:#fff;--bg-card-alt:#ececed;--border:#dddde0;--border-hi:#c4c4c8;--text:#1a1a1c;--text2:#5a5a5e;--text3:#8a8a8e;--accent:#4a9000;--accent-dim:#6b8a00;--blue:#0a78b8;--red:#d70015;--warn:#9a6a00;--green:#1a8c3a;--orange:#c25500}
+:root[data-theme="light"] .ctrl-btn.primary:hover{background:#5fb300}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
@@ -344,6 +347,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <div class="settings-section">
     <div class="settings-label">App-Verhalten</div>
     <div class="settings-group">
+      <label>Erscheinungsbild</label>
+      <select id="set-theme" onchange="setTheme(this.value)">
+        <option value="dark">Dunkel</option>
+        <option value="light">Hell</option>
+      </select>
+      <div class="settings-hint">Wechselt sofort. Gilt nur auf diesem Gerät/Browser.</div>
+    </div>
+    <div class="settings-group">
+      <label>Vibration beim Pacing</label>
+      <select id="set-vibrate" onchange="setVibrate(this.value==='on')">
+        <option value="off">Aus</option>
+        <option value="on">An</option>
+      </select>
+      <div class="settings-hint">Haptischer Takt parallel zu den Beeps (Handy in der Tasche). Nur auf unterstützten Geräten (Android); iPhone/Safari ignorieren es.</div>
+    </div>
+    <div class="settings-group">
       <label>„Soll erreicht" ab (%)</label>
       <input type="number" id="set-cls-hit" min="1" max="200" step="1">
       <div class="settings-hint">Ist/Soll ≥ Wert → grün im Dashboard (Chart „Reps/Woche")</div>
@@ -433,7 +452,9 @@ let planInitial={2:[],3:[]}, planAdapted={2:[],3:[]};  // aus Sheet-Tab 'Plan' (
 // Steuert App-VERHALTEN (Schwellen/Anzeige) — NICHT Plan-Daten (RPM/Reps/Stufen leben im Sheet, TASK-009).
 const DEFAULTS={
   clsHit:1.00,    // classifyVolume: ab diesem Ist/Soll-Verhaeltnis gilt eine Session als 'hit' (gruen)
-  clsShort:0.90   // classifyVolume: ab hier 'short' (gelb); darunter 'fail' (rot)
+  clsShort:0.90,  // classifyVolume: ab hier 'short' (gelb); darunter 'fail' (rot)
+  theme:'dark',   // TASK-007: 'dark' | 'light' — schaltet das CSS-Variablen-Set via <html data-theme>
+  vibrate:false   // TASK-004: haptisches Pacing parallel zu den Beeps. Nur Android; iOS-Safari ignoriert navigator.vibrate still.
 };
 let settings={...DEFAULTS};
 
@@ -464,15 +485,31 @@ function saveConfig(){
 function loadSettings(){
   try{ settings={...DEFAULTS, ...(JSON.parse(localStorage.getItem('bt-settings'))||{})} }
   catch(e){ settings={...DEFAULTS} }   // localStorage aus/voll/kaputt -> Defaults (QG-4)
+  applyTheme();   // Theme synchron zu settings (auch nach Reload/Merge); guard schuetzt DOM-Mock
 }
 function saveSettings(){
   try{ localStorage.setItem('bt-settings',JSON.stringify(settings)) }catch(e){}  // Privatmodus/voll: still, App laeuft weiter
 }
+
+// ===== THEME (TASK-007) =====
+// Setzt <html data-theme="light|dark"> -> das passende CSS-Variablen-Set greift. Guard: im Smoke-Mock fehlt documentElement.
+function applyTheme(){ const r=document.documentElement; if(r){ r.dataset.theme = settings.theme==='light'?'light':'dark' } }
+function setTheme(v){ settings.theme = v==='light'?'light':'dark'; applyTheme(); saveSettings() }   // Live-Toggle: sofort sichtbar + persistiert
+
+// ===== HAPTIK (TASK-004) =====
+// Vibrations-Pattern je Event (ms-Liste). Bewusst kurz: pace = einzelner Tap (12s-Takt, soll nicht nerven/Akku ziehen),
+// markantere Pattern fuer seltene Events. Nach Gefuehl justierbar.
+const VIBE={ pace:[60], round:[90,60,90], rest:[200], done:[120,60,120,60,220] };
+function vibe(kind){ if(settings.vibrate && navigator.vibrate){ try{ navigator.vibrate(VIBE[kind]||0) }catch(e){} } }
+function setVibrate(on){ settings.vibrate=!!on; saveSettings(); if(on)vibe('round') }   // beim Aktivieren ein haptisches Echo als Bestaetigung
 // settings -> Eingabefelder (intern 0..2 als Verhaeltnis, UI als Prozent).
 function fillSettingsUI(){
   const h=document.getElementById('set-cls-hit'), s=document.getElementById('set-cls-short');
   if(h)h.value=Math.round(settings.clsHit*100);
   if(s)s.value=Math.round(settings.clsShort*100);
+  const th=document.getElementById('set-theme'), vb=document.getElementById('set-vibrate');
+  if(th)th.value = settings.theme==='light'?'light':'dark';
+  if(vb)vb.value = settings.vibrate?'on':'off';
 }
 // Eingabefelder -> settings, mit Validierung (QG-3). clsShort MUSS < clsHit, sonst Abbruch.
 function saveSettingsUI(){
@@ -489,6 +526,7 @@ function saveSettingsUI(){
 function resetSettings(){
   settings={...DEFAULTS};
   saveSettings();
+  applyTheme();      // Theme folgt dem Reset (Light -> Default Dark sofort sichtbar)
   fillSettingsUI();
   renderStats();
   showToast('Auf Default zurückgesetzt');
@@ -671,10 +709,10 @@ function refreshData(){fetchFromSheet()}
 let audioCtx;
 function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)()}
 function beep(f,d,v=0.3){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}
-function beepPace(){beep(880,0.08,0.15)}
-function beepRound(){beep(1200,0.15,0.3)}
-function beepRest(){beep(440,0.2,0.2)}
-function beepDone(){beep(1400,0.1,0.4);setTimeout(()=>beep(1600,0.1,0.4),120);setTimeout(()=>beep(1800,0.15,0.4),240)}
+function beepPace(){beep(880,0.08,0.15);vibe('pace')}
+function beepRound(){beep(1200,0.15,0.3);vibe('round')}
+function beepRest(){beep(440,0.2,0.2);vibe('rest')}
+function beepDone(){beep(1400,0.1,0.4);setTimeout(()=>beep(1600,0.1,0.4),120);setTimeout(()=>beep(1800,0.15,0.4),240);vibe('done')}
 
 // ===== NAV =====
 document.querySelectorAll('.nav-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('v-'+b.dataset.view).classList.add('active');if(b.dataset.view==='log')renderLog();if(b.dataset.view==='plan')renderPlan();if(b.dataset.view==='stats')renderStats()})});
