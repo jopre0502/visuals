@@ -345,6 +345,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <div class="plan-section"><div class="plan-label">Volumen</div><div class="plan-title">Reps pro Woche</div><div id="dash-weekstack"></div></div>
   <div class="plan-section"><div class="plan-label">Soll vs. Ist</div><div class="plan-title">Entwicklung über Plan</div><div id="dash-planprog"></div></div>
   <div class="plan-section"><div class="plan-label">Tag 1</div><div class="plan-title">Max-Set-Verlauf</div><div id="dash-maxset"></div></div>
+  <div class="plan-section"><div class="plan-label">Tag 2</div><div class="plan-title">Intervall-Verlauf</div><div id="dash-vol2"></div></div>
+  <div class="plan-section"><div class="plan-label">Tag 3</div><div class="plan-title">Speed-Verlauf</div><div id="dash-vol3"></div></div>
   <div class="plan-section"><div class="plan-label">Pace</div><div class="plan-title">Trefferquote</div><div id="dash-pace"></div></div>
 </div>
 
@@ -1025,7 +1027,7 @@ function renderVolChart(){
 function getWN(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);const w1=new Date(dt.getFullYear(),0,4);return 1+Math.round(((dt-w1)/864e5-3+(w1.getDay()+6)%7)/7)}
 
 // ===== DASHBOARD / STATS (TASK-010) =====
-function renderStats(){renderWeekStack();renderPlanProgress();renderMaxSetChart();renderPaceDonut()}
+function renderStats(){renderWeekStack();renderPlanProgress();renderMaxSetChart();renderVolSeries('dash-vol2',2,'var(--blue)');renderVolSeries('dash-vol3',3,'var(--orange)');renderPaceDonut()}
 
 // Wochenvolumen nach Trainingstag (1/2/3) — fuer gestapelte Balken. ISO-Montag als Wochenstart.
 function getWeeklyVolByDay(){
@@ -1067,6 +1069,12 @@ function classifyVolume(ist,soll){
 function getMaxSetSeries(){
   return sessions.filter(s=>s.day===1&&s.maxSet>0).map(s=>({date:s.date,val:s.maxSet})).sort((a,b)=>a.date.localeCompare(b.date));
 }
+// Volumen-Verlauf (total Reps/Session) eines Trainingstags, chronologisch — fuer Tag-2/3-Charts (TASK-014).
+function getVolSeries(day){
+  return sessions.filter(s=>s.day===day&&s.total>0).map(s=>({date:s.date,val:s.total})).sort((a,b)=>a.date.localeCompare(b.date));
+}
+// Hoechstes Stufen-Soll-Volumen des Tags (Tag 2=STAGES, Tag 3=STAGES_OP) als stabiler Skalen-Floor.
+function maxStageVol(day){const arr=day===3?STAGES_OP:STAGES;return Math.max(...arr.map(s=>s.total))}
 function getPaceDist(){
   const d={hit:0,miss:0,fail:0};
   sessions.forEach(s=>{if((s.day===2||s.day===3)&&s.pace)d[s.pace]++});
@@ -1134,6 +1142,22 @@ function renderMaxSetChart(){
   const dots=data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.val)}" r="3" fill="var(--accent)"><title>${d.date}: ${d.val} Reps</title></circle>`).join('');
   const step=Math.ceil(data.length/6),xlab=data.map((d,i)=>i%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.date.slice(5)}</text>`:'').join('');
   c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${ms}${line}${dots}${xlab}</svg>`;
+}
+
+// Charts 3b/3c — Volumen-Verlauf Tag 2/3 (Reps/Session), analog Chart 3 aber mit DYNAMISCHER Skala:
+// kein fixes 100-Ziel, ymax = hoechstes Stufen-Soll des Tags (stabiler Floor) bzw. der Ist-Peak.
+// Eine generische Funktion fuer beide Tage; Farbe je Tag (Tag 2 --blue, Tag 3 --orange). (TASK-014)
+function renderVolSeries(elId,day,color){
+  const c=document.getElementById(elId),data=getVolSeries(day),lbl=day===2?'Intervalle':'Speed';
+  if(!data.length){c.innerHTML=`<div class="empty-state">Noch keine ${lbl}-Sessions (Tag ${day})</div>`;return}
+  const W=560,H=200,PL=30,PR=24,PT=14,PB=26,iw=W-PL-PR,ih=H-PT-PB;
+  const ymax=Math.max(maxStageVol(day),...data.map(d=>d.val))*1.1;
+  const x=i=>PL+(data.length===1?iw/2:i*iw/(data.length-1)),y=v=>PT+ih-(v/ymax*ih);
+  const grid=[0,0.5,1].map(f=>{const yy=PT+ih-f*ih;return`<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="var(--border)"/><text x="0" y="${yy+3}">${Math.round(ymax*f)}</text>`}).join('');
+  const line=`<polyline points="${data.map((d,i)=>`${x(i)},${y(d.val)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2"/>`;
+  const dots=data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.val)}" r="3" fill="${color}"><title>${d.date}: ${d.val} Reps</title></circle>`).join('');
+  const step=Math.ceil(data.length/6),xlab=data.map((d,i)=>i%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.date.slice(5)}</text>`:'').join('');
+  c.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}">${grid}${line}${dots}${xlab}</svg>`;
 }
 
 // Chart 4 — Pace-Trefferquote (Tag 2/3) als Donut via conic-gradient (keine Lib).
