@@ -188,11 +188,12 @@ Token im Agent; Eintrag via App-UI/Main-Session). On-demand-Aufruf, Empfehlung w
 - [ ] **Ausstehend (nur Deploy, User-Seite):** Apps Script **v5** in GAS einfügen → `setupSheet()` einmal ausführen (leert Sheet, importiert 6 echte Sessions) → **Neue Version** bereitstellen → `?action=debug` muss `version: v5` zeigen
 - [ ] Session 6 (2026-06-03, Speed Endurance) Pace-RPM nachtragen (aktuell leer → „Pace n/a")
 - [ ] Falls Mojibake in Notizen erneut auftaucht: `TextDecoder('utf-8')` in `fetchSessions` (reiner Anzeige-Fix; Alt-Bytes waren bereits korrupt gespeichert, `setupSheet` schreibt sauber)
-- [ ] PWA-Manifest + Service Worker für Offline-Fähigkeit (Timer muss ohne Netz funktionieren)
-- [ ] Vibration API als Alternative/Ergänzung zu Audio-Beeps (Handy in der Tasche beim Training)
-- [ ] Max-Attempt-Modus: Spezieller Timer für Testläufe (alle 3-4 Wochen nach Deload)
-- [ ] Wochenvolumen-Ziel und Deload-Wochen-Erkennung automatisieren
-- [ ] Dark/Light Toggle (aktuell nur Dark)
+- [ ] PWA-Manifest + Service Worker für Offline-Fähigkeit (Timer muss ohne Netz funktionieren) — **offen (TASK-003)**
+- [x] Vibration API als Beep-Ergänzung — erledigt (TASK-004, `b628129`)
+- [x] Max-Attempt-Modus für Testläufe — erledigt als Frei-Preset `presetMaxAttempt()` (TASK-005/011, 2026-06-12)
+- [x] Wochenvolumen-Ziel + Deload-Erkennung — abgedeckt durch `fitness-coach`-Subagent (TASK-012, read-only Auswertung)
+- [x] Dark/Light Toggle — erledigt (TASK-007, `b628129`)
+- [x] Variabler Timer mit Direkt-Log (Frei-Modus, 4. Button) — erledigt (TASK-011, `c7ecee7`, am Gerät verifiziert)
 
 ## Begleitende Artefakte
 
