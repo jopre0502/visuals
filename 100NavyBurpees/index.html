@@ -479,6 +479,7 @@ function getRepSec(){
 }
 
 let sessions=[], config={sheetId:'',scriptUrl:'',apiToken:''};
+let dashFilter={day:0,weeks:0}; // Dashboard-Filter (TASK-015): day 0=alle/1/2/3, weeks 0=alle/4/8/12. In-memory (D3).
 let planInitial={2:[],3:[]}, planAdapted={2:[],3:[]};  // aus Sheet-Tab 'Plan' (TASK-009)
 
 // App-Settings (TASK-013): zentrale Defaults, per localStorage 'bt-settings' ueberlagert.
@@ -1033,10 +1034,25 @@ function getWN(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDat
 // ===== DASHBOARD / STATS (TASK-010) =====
 function renderStats(){renderWeekStack();renderPlanProgress();renderMaxSetChart();renderVolSeries('dash-vol2',2,'var(--blue)');renderVolSeries('dash-vol3',3,'var(--orange)');renderPaceDonut()}
 
+// Dashboard-Filter (TASK-015): leitet aus dem globalen sessions-Array eine gefilterte Sicht ab,
+// OHNE sessions zu mutieren. day 0=alle Typen, weeks 0=alle Zeit. Zeitfenster inklusiv ab cutoff
+// (heute - weeks*7 Tage); s.date ist roh-ISO (yyyy-mm-dd) -> String-Vergleich genuegt.
+function getFilteredSessions(){
+  let arr=sessions;
+  if(dashFilter.day)arr=arr.filter(s=>s.day===dashFilter.day);
+  if(dashFilter.weeks){
+    const c=new Date();c.setHours(0,0,0,0);c.setDate(c.getDate()-dashFilter.weeks*7);
+    const cutoff=c.toISOString().slice(0,10);
+    arr=arr.filter(s=>s.date>=cutoff);
+  }
+  return arr;
+}
+
 // Wochenvolumen nach Trainingstag (1/2/3) — fuer gestapelte Balken. ISO-Montag als Wochenstart.
 function getWeeklyVolByDay(){
-  if(!sessions.length)return[];const w={};
-  sessions.forEach(s=>{
+  const src=getFilteredSessions();
+  if(!src.length)return[];const w={};
+  src.forEach(s=>{
     const ws=new Date(s.date);ws.setDate(ws.getDate()-((ws.getDay()+6)%7));
     const k=ws.toISOString().slice(0,10);
     if(!w[k])w[k]={week:k,d1:0,d2:0,d3:0,vol:0};
@@ -1071,17 +1087,17 @@ function classifyVolume(ist,soll){
 }
 
 function getMaxSetSeries(){
-  return sessions.filter(s=>s.day===1&&s.maxSet>0).map(s=>({date:s.date,val:s.maxSet})).sort((a,b)=>a.date.localeCompare(b.date));
+  return getFilteredSessions().filter(s=>s.day===1&&s.maxSet>0).map(s=>({date:s.date,val:s.maxSet})).sort((a,b)=>a.date.localeCompare(b.date));
 }
 // Volumen-Verlauf (total Reps/Session) eines Trainingstags, chronologisch — fuer Tag-2/3-Charts (TASK-014).
 function getVolSeries(day){
-  return sessions.filter(s=>s.day===day&&s.total>0).map(s=>({date:s.date,val:s.total})).sort((a,b)=>a.date.localeCompare(b.date));
+  return getFilteredSessions().filter(s=>s.day===day&&s.total>0).map(s=>({date:s.date,val:s.total})).sort((a,b)=>a.date.localeCompare(b.date));
 }
 // Hoechstes Stufen-Soll-Volumen des Tags (Tag 2=STAGES, Tag 3=STAGES_OP) als stabiler Skalen-Floor.
 function maxStageVol(day){const arr=day===3?STAGES_OP:STAGES;return Math.max(...arr.map(s=>s.total))}
 function getPaceDist(){
   const d={hit:0,miss:0,fail:0};
-  sessions.forEach(s=>{if((s.day===2||s.day===3)&&s.pace)d[s.pace]++});
+  getFilteredSessions().forEach(s=>{if((s.day===2||s.day===3)&&s.pace)d[s.pace]++});
   return d;
 }
 
@@ -1102,7 +1118,7 @@ function renderWeekStack(){
 // Soll initial=gestrichelt, Soll adaptiv=durchgezogen. Macht das Zwei-Plan-Modell (TASK-009) sichtbar.
 function renderPlanProgress(){
   const c=document.getElementById('dash-planprog');
-  const data=sessions.filter(s=>(s.day===2||s.day===3)&&s.stage!=null).sort((a,b)=>a.date.localeCompare(b.date))
+  const data=getFilteredSessions().filter(s=>(s.day===2||s.day===3)&&s.stage!=null).sort((a,b)=>a.date.localeCompare(b.date))
     .map(s=>({date:s.date,ist:s.total,sollI:stagePlanVolume(s.stage,'initial'),sollA:stagePlanVolume(s.stage,'adapted')}));
   if(!data.length){c.innerHTML='<div class="empty-state">Noch keine Stufen-Sessions (Tag 2/3)</div>';return}
   const W=560,H=200,PL=30,PR=10,PT=14,PB=26,iw=W-PL-PR,ih=H-PT-PB;
