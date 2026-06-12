@@ -1055,13 +1055,14 @@ function renderStats(){applyDashVisibility();renderWeekStack();renderPlanProgres
 
 // Dashboard-Filter (TASK-015): leitet aus dem globalen sessions-Array eine gefilterte Sicht ab,
 // OHNE sessions zu mutieren. day 0=alle Typen, weeks 0=alle Zeit. Zeitfenster inklusiv ab cutoff
-// (heute - weeks*7 Tage); s.date ist roh-ISO (yyyy-mm-dd) -> String-Vergleich genuegt.
+// (heute - weeks*7 Tage). Cutoff aus LOKALEN Kalenderfeldern (nicht toISOString) -> kein UTC-Shift
+// um einen Tag in oestlichen Zeitzonen; s.date ist roh-ISO (yyyy-mm-dd) -> String-Vergleich genuegt.
 function getFilteredSessions(){
   let arr=sessions;
   if(dashFilter.day)arr=arr.filter(s=>s.day===dashFilter.day);
   if(dashFilter.weeks){
-    const c=new Date();c.setHours(0,0,0,0);c.setDate(c.getDate()-dashFilter.weeks*7);
-    const cutoff=c.toISOString().slice(0,10);
+    const c=new Date();c.setDate(c.getDate()-dashFilter.weeks*7);
+    const cutoff=`${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}-${String(c.getDate()).padStart(2,'0')}`;
     arr=arr.filter(s=>s.date>=cutoff);
   }
   return arr;
