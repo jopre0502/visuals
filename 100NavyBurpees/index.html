@@ -121,6 +121,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
 /* PLAN */
 .plan-section{margin-bottom:2.5rem}
 .plan-label{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--accent-dim);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem}
+.dash-filter{display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem}
+.dfilter-row{display:flex;gap:0.4rem}
+.fchip{flex:1;padding:0.5rem 0.25rem;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);background:var(--bg-card);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.15s}
+.fchip.active{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+.fchip:hover:not(.active){color:var(--text2);border-color:var(--text3)}
 .plan-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:1rem}
 .stage-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem;padding:0.75rem 1rem;border:1px solid var(--border);margin-bottom:0.5rem;background:var(--bg-card)}
 .stage-card.current{border-color:var(--blue);background:rgba(90,200,250,0.05)}
@@ -344,14 +349,28 @@ input:focus,select:focus{outline:none;border-color:var(--accent-dim)}
   <div class="plan-section"><div class="plan-label">Wochen-Volumen</div><div id="vol-chart"></div></div>
 </div>
 
-<!-- DASHBOARD / STATS (TASK-010) -->
+<!-- DASHBOARD / STATS (TASK-010, Filter TASK-015) -->
 <div id="v-stats" class="view">
-  <div class="plan-section"><div class="plan-label">Volumen</div><div class="plan-title">Reps pro Woche</div><div id="dash-weekstack"></div></div>
-  <div class="plan-section"><div class="plan-label">Soll vs. Ist</div><div class="plan-title">Entwicklung über Plan</div><div id="dash-planprog"></div></div>
-  <div class="plan-section"><div class="plan-label">Tag 1</div><div class="plan-title">Max-Set-Verlauf</div><div id="dash-maxset"></div></div>
-  <div class="plan-section"><div class="plan-label">Tag 2</div><div class="plan-title">Intervall-Verlauf</div><div id="dash-vol2"></div></div>
-  <div class="plan-section"><div class="plan-label">Tag 3</div><div class="plan-title">Speed-Verlauf</div><div id="dash-vol3"></div></div>
-  <div class="plan-section"><div class="plan-label">Pace</div><div class="plan-title">Trefferquote</div><div id="dash-pace"></div></div>
+  <div class="dash-filter">
+    <div class="dfilter-row" id="dfilter-day">
+      <button class="fchip active" data-day="0">Alle</button>
+      <button class="fchip" data-day="1">Tag 1</button>
+      <button class="fchip" data-day="2">Tag 2</button>
+      <button class="fchip" data-day="3">Tag 3</button>
+    </div>
+    <div class="dfilter-row" id="dfilter-weeks">
+      <button class="fchip active" data-weeks="0">Alle</button>
+      <button class="fchip" data-weeks="4">4 Wo</button>
+      <button class="fchip" data-weeks="8">8 Wo</button>
+      <button class="fchip" data-weeks="12">12 Wo</button>
+    </div>
+  </div>
+  <div class="plan-section" data-fday="1,2,3"><div class="plan-label">Volumen</div><div class="plan-title">Reps pro Woche</div><div id="dash-weekstack"></div></div>
+  <div class="plan-section" data-fday="2,3"><div class="plan-label">Soll vs. Ist</div><div class="plan-title">Entwicklung über Plan</div><div id="dash-planprog"></div></div>
+  <div class="plan-section" data-fday="1"><div class="plan-label">Tag 1</div><div class="plan-title">Max-Set-Verlauf</div><div id="dash-maxset"></div></div>
+  <div class="plan-section" data-fday="2"><div class="plan-label">Tag 2</div><div class="plan-title">Intervall-Verlauf</div><div id="dash-vol2"></div></div>
+  <div class="plan-section" data-fday="3"><div class="plan-label">Tag 3</div><div class="plan-title">Speed-Verlauf</div><div id="dash-vol3"></div></div>
+  <div class="plan-section" data-fday="2,3"><div class="plan-label">Pace</div><div class="plan-title">Trefferquote</div><div id="dash-pace"></div></div>
 </div>
 
 <!-- SETTINGS -->
@@ -1032,7 +1051,7 @@ function renderVolChart(){
 function getWN(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);const w1=new Date(dt.getFullYear(),0,4);return 1+Math.round(((dt-w1)/864e5-3+(w1.getDay()+6)%7)/7)}
 
 // ===== DASHBOARD / STATS (TASK-010) =====
-function renderStats(){renderWeekStack();renderPlanProgress();renderMaxSetChart();renderVolSeries('dash-vol2',2,'var(--blue)');renderVolSeries('dash-vol3',3,'var(--orange)');renderPaceDonut()}
+function renderStats(){applyDashVisibility();renderWeekStack();renderPlanProgress();renderMaxSetChart();renderVolSeries('dash-vol2',2,'var(--blue)');renderVolSeries('dash-vol3',3,'var(--orange)');renderPaceDonut()}
 
 // Dashboard-Filter (TASK-015): leitet aus dem globalen sessions-Array eine gefilterte Sicht ab,
 // OHNE sessions zu mutieren. day 0=alle Typen, weeks 0=alle Zeit. Zeitfenster inklusiv ab cutoff
@@ -1046,6 +1065,26 @@ function getFilteredSessions(){
     arr=arr.filter(s=>s.date>=cutoff);
   }
   return arr;
+}
+
+// Chart-Sichtbarkeit nach Typ-Filter (TASK-015, D2): jede Stats-Sektion traegt data-fday mit den
+// Tagen, fuer die sie Inhalt hat. day=0 -> alle sichtbar; sonst nur Sektionen, deren data-fday den
+// gewaehlten Tag enthaelt (T1 -> Max-Set, T2/3 -> ihr Verlauf; Soll-vs-Ist + Pace nur T2/3).
+function applyDashVisibility(){
+  document.querySelectorAll('#v-stats [data-fday]').forEach(sec=>{
+    const days=sec.dataset.fday.split(',').map(Number);
+    sec.style.display=(dashFilter.day===0||days.includes(dashFilter.day))?'':'none';
+  });
+}
+
+// Filter-Leiste verdrahten (TASK-015): Chip-Klick markiert aktiv (eine Auswahl je Reihe),
+// setzt dashFilter[key] und re-rendert das Dashboard live. In-memory (D3) — kein Storage.
+function wireDashFilter(){
+  const wire=(rowId,key)=>document.querySelectorAll('#'+rowId+' .fchip').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#'+rowId+' .fchip').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');dashFilter[key]=+b.dataset[key];renderStats();
+  }));
+  wire('dfilter-day','day');wire('dfilter-weeks','weeks');
 }
 
 // Wochenvolumen nach Trainingstag (1/2/3) — fuer gestapelte Balken. ISO-Montag als Wochenstart.
@@ -1199,6 +1238,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function renderAll(){renderLog();renderPlan();renderStats()}
 loadSettings();   // vor erstem Render: classifyVolume liest settings.clsHit/clsShort
 fillSettingsUI(); // Config-Felder mit aktuellen Werten vorbelegen
+wireDashFilter(); // TASK-015: Dashboard-Filter-Chips verdrahten (Chips sind statisch im DOM)
 loadConfig();
 if(config.sheetId)fetchFromSheet();
 // PWA (TASK-003): SW relativ registrieren -> Scope = /visuals/100NavyBurpees/ (nicht Pages-Root).
